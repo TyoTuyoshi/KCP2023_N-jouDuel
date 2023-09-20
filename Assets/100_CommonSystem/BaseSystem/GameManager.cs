@@ -27,6 +27,23 @@ public class GameManager : SingletonBase<GameManager>
         get { return CSV.GetCharTable(csvFilePath); }
     }
 
+    //フィールド名
+    public string fieldName { get { return csvFileName; } }
+    //フィールドタイプ(A,B,C)
+    public char fileType { get { return csvFileName[0]; } }
+    //フィールドサイズ(11,13,15,17,21,25)
+    public int fieldSize {
+        get { return int.Parse(csvFileName.Substring(1, 2)); }
+    }
+    public int fieldSizeIndex {
+        get
+        {
+            int[] fsize = { 11, 13, 15, 17, 21, 25 };
+            return Array.IndexOf(fsize, fieldSize);
+        }
+    }
+
+
     private void Start()
     {
     }

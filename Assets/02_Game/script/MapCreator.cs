@@ -3,29 +3,16 @@ using System.Collections.Generic;
 using BaseSystem;
 using BaseSystem.Utility;
 using UnityEngine;
-
-[System.Serializable]
-public class MapChip
-{
-    public enum State
-    {
-        Plain,
-        Catstle,
-        Pond
-    }
-
-    public State fieldState = State.Plain;
-    private int raw = 0;
-    private int column = 0;
-}
+using UnityEngine.Serialization;
 
 public class MapCreator : SingletonBase<MapCreator>
 {
     private char[,] m_fieldData = new char[,]{};
 
-    private MapChip[,] m_field = new MapChip[,]{};
+    private GameObject[,] m_field = new GameObject[,]{};
     
-    [SerializeField] private MapChip s;
+    [SerializeField] private GameObject s;
+    [SerializeField] private Vector3 m_offsetPos = new Vector3();
     void Start()
     {
         m_fieldData = GameManager.Instance.fieldData;
@@ -39,8 +26,13 @@ public class MapCreator : SingletonBase<MapCreator>
         {
             for (int j = 0; j < m_fieldData.GetLength(1); j++)
             {
-                //MapChip chip = Instantiate(s) as MapChip;
-                //chip.SetPosition(i, 0, j);
+                //城、平地の場合
+                if (m_fieldData[i, j] != '1') 
+                {
+                    GameObject chip = Instantiate(s);
+                    chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
+                }
+                
             }
         }
     }
