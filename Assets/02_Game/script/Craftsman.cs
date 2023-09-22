@@ -66,7 +66,7 @@ namespace KCP2023
 
         public void Update()
         {
-            DebugEx.Log(isTouch);
+            //DebugEx.Log(isTouch);
         }
     }
 }

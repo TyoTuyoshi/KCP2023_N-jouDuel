@@ -24,6 +24,7 @@ namespace KCP2023
         public int fieldSize = 0;
         public char[,] field = null;
 
+        //public 
         //フィールドの先手職人
         public List<Craftsman> m_craftsmenA = new List<Craftsman>();
 
@@ -79,9 +80,6 @@ namespace KCP2023
                     }
                 }
             }
-            
-            
-
             return gameField;
         }
     }

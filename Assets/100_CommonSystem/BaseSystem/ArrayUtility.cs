@@ -18,6 +18,12 @@ namespace BaseSystem.Utility
             //return new T[,]{};
         }
 
+        /// <summary>
+        /// リスト内配列を二次元配列へコピーする。
+        /// </summary>
+        /// <param name="source">コピー元のリスト内配列</param>
+        /// <param name="pasteArray">コピー先二次元配列</param>
+        /// <typeparam name="T"></typeparam>
         public static void CopyListToTwoDim<T>(List<T[]> source, ref T[,] pasteArray)
         {
             int row = source.Count;

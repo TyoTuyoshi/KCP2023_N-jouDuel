@@ -20,6 +20,11 @@ namespace BaseSystem.Utility
             Log(string.Join(",", array));
         }
 
+        /// <summary>
+        /// 二次元配列のログ表示
+        /// </summary>
+        /// <param name="array">表示対象</param>
+        /// <typeparam name="T"></typeparam>
         public static void ShowArrayLog<T>(T[,] array)
         {
             int row = array.GetLength(0);

@@ -17,22 +17,24 @@ public class MapCreator : SingletonBase<MapCreator>
     {
         m_fieldData = GameManager.Instance.fieldData;
         SetGameField();
-        //m_fieldData = GameManager.Instance.fieldData;
     }
 
+    /// <summary>
+    /// ゲームフィールドをシーンに反映させる。
+    /// </summary>
     private void SetGameField()
     {
         for (int i = 0; i < m_fieldData.GetLength(0); i++)
         {
             for (int j = 0; j < m_fieldData.GetLength(1); j++)
             {
+                //TODO 完全改造
                 //城、平地の場合
                 if (m_fieldData[i, j] != '1') 
                 {
                     GameObject chip = Instantiate(s);
                     chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
                 }
-                
             }
         }
     }

@@ -27,7 +27,6 @@ namespace KCP2023
         void Start()
         {
             SetFieldCenterCameraPosition();
-            Debug.Log("de");
         }
     }
 }
