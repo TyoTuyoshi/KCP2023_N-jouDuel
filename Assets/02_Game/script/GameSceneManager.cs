@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KCP2023
 {
-    public class GameSceneManager : SingletonBase<GameManager>
+    public class GameSceneManager : SingletonBase<GameSceneManager>
     {
         [SerializeField] private Camera m_camera = null;
         [SerializeField] private Vector3[] m_cameraOffset = null;

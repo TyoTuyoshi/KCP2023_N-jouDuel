@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using KCP2023;
 using UnityEngine;
 
 namespace BaseSystem.Utility.File
@@ -18,6 +19,7 @@ namespace BaseSystem.Utility.File
         
         //private static StreamReader csvFile = null;//CSVファイル
 
+        public static char[,] csvData = null;
         /// <summary>
         /// 読み込みファイルのパスを変更
         /// </summary>
@@ -31,7 +33,7 @@ namespace BaseSystem.Utility.File
 
         public void ReadCSVFile(string path, ref int[][] table)
         {
-            
+      
         }
 
         /// <summary>
@@ -40,6 +42,8 @@ namespace BaseSystem.Utility.File
         /// <param name="path">ファイルパス</param>
         public static char[,] GetCharTable(string path, string name = null)
         {
+            CSV c = new CSV();
+            c.m_directoryPath = "deddedefe";
             try
             {
                 //ファイル読み込み
@@ -69,8 +73,9 @@ namespace BaseSystem.Utility.File
 
                 char[,] csvValue = new char[row, column];
                 //戻り値用char二次元配列へデータをコピー
-                ArrayConverter.CopyListToTwoDim(csvTable, ref csvValue);
+                ArrayUtility.CopyListToTwoDim(csvTable, ref csvValue);
 
+                csvData = csvValue;
                 return csvValue;
             }
 

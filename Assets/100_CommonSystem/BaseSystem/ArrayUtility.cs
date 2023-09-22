@@ -6,7 +6,7 @@ namespace BaseSystem.Utility
     /// <summary>
     /// 二次元リストや二次元配列の変換
     /// </summary>
-    public sealed class ArrayConverter
+    public sealed class ArrayUtility
     {
         public static void ListToTwoDim<T>()
         {

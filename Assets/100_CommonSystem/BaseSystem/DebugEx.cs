@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using KCP2023;
 using UnityEngine;
 
 namespace BaseSystem.Utility
@@ -35,6 +36,7 @@ namespace BaseSystem.Utility
 
                 ShowArrayLog(line);
             }
+
         }
 
         public static void ShowGameView<T>(T t)

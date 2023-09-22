@@ -5,49 +5,68 @@ using BaseSystem.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[RequireComponent(typeof(Rigidbody))]
-public class Craftsman : MonoBehaviour, IPointerClickHandler
+namespace KCP2023
 {
-    public int posX;
-    public int posY;
-
-    public bool isTouch = false;
-
-    public enum State
+    [Serializable]
+    [RequireComponent(typeof(Rigidbody))]
+    public class Craftsman : MonoBehaviour, IPointerClickHandler
     {
-        Stay = 0,
-        Move,
-        Build,
-        Crash
-    }
+        public int posX;
+        public int posY;
 
-    private State mState = State.Stay;
+        public bool isTouch = false;
 
-    public bool Stay() { return true; }
+        public enum State
+        {
+            Stay = 0,
+            Move,
+            Build,
+            Crash
+        }
 
-    public bool Move()
-    {
-        return true;
-    }
+        private State mState = State.Stay;
 
-    public bool Build()
-    {
-        return true;
-    }
+        public void SetPos(int x, int y)
+        {
+            posX = x;
+            posY = y;
+            transform.position = new Vector3(posX, 0, posY);
+        }
 
-    public bool Crash()
-    {
-        return true;
-    }
+        public void SetPos(Vector2Int pos)
+        {
+            SetPos(pos.x, pos.y);
+        }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        DebugEx.Log("clicled!");
-        isTouch = true;
-    }
+        public bool Stay()
+        {
+            return true;
+        }
 
-    public void Update()
-    {
-        DebugEx.Log(isTouch);
+        public bool Move()
+        {
+            return true;
+        }
+
+        public bool Build()
+        {
+            return true;
+        }
+
+        public bool Crash()
+        {
+            return true;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            DebugEx.Log("clicled!");
+            isTouch = true;
+        }
+
+        public void Update()
+        {
+            DebugEx.Log(isTouch);
+        }
     }
 }
