@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using BaseSystem;
@@ -7,6 +8,9 @@ namespace KCP2023
 {
     public class GameSceneManager : SingletonBase<GameSceneManager>
     {
+        //自身が先手か否か。(先手A,後手B)
+        public bool isFirst = false;
+        
         [SerializeField] private Camera m_camera = null;
         [SerializeField] private Vector3[] m_cameraOffset = null;
         /// <summary>
@@ -27,6 +31,11 @@ namespace KCP2023
         void Start()
         {
             SetFieldCenterCameraPosition();
+        }
+
+        private void Update()
+        {
+            if (isFirst) ;
         }
     }
 }
