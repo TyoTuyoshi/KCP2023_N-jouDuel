@@ -6,44 +6,50 @@ using UnityEngine;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using BaseSystem.Utility;
-using Debug = System.Diagnostics.Debug;
 
 namespace KCP2023
 {
+    /// <summary>
+    /// クライアントマネージャー
+    /// </summary>
     public class ClientManager : SingletonBase<ClientManager>
     {
+        //接続先ホスト 0:ローカルホスト　1:本選サーバー
+        public int hostType = 0;
+
         /// <summary>
-        /// GET:
-        /// curl "localhost:3000/matches/10?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521">debug.json
-        /// POST:
-        /// curl -i -X POST -H "Content-Type: application/json" -d "{\"turn\": 69,\"actions\": [{\"type\":2,\"dir\":4},{\"type\":2,\"dir\":4}]}" localhost:3000/matches/10?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521
+        /// GET: curl "localhost:3000/matches/10?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521">debug.json
+        /// POST: curl -i -X POST -H "Content-Type: application/json" -d "{\"turn\": 69,\"actions\": [{\"type\":2,\"dir\":4},{\"type\":2,\"dir\":4}]}" localhost:3000/matches/10?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521
         /// </summary>
         private Process m_curlProcess = null;
 
-        private Board m_board = new Board();
-
-        [NonSerialized]public string mainUrl =
-            "https://www.procon.gr.jp/matches/10?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521";
+        [NonSerialized] public string mainUrl =
+            "https://www.procon.gr.jp/matches/id?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521";
 
         public string token = "takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521";
         //public const string url ="https://www.procon.gr.jp/matches/?token=takuma65a0e120ec5279be88be37b54b40a9dd5a364a0b8113cd36aa99c05521";
-        //"curl \"localhost:3000/matches/10?token=\" > debug.json";
 
         /// <summary>
         /// CurlコマンドProcess群
         /// </summary>
-        public const string curl = "curl.exe";
-        public string mainHost = "https://www.procon.gr.jp";
-        public string localHost = "localhost:3000";
-        public int matchID = 10;
-        public string outputPath = "C:/Users/futur/Desktop/KCP2023";
-        public string outputJson = "state.json";
-        
-        //"C:\Users\futur\Desktop\KCP2023\getSampleServer.bat"
-        public string getSampleServerBat = "/getSampleServer.bat";
-        public string getSampleServerBatPath = "C:/Users/futur/Desktop/KCP2023/server/bat";
+        [NonSerialized] public const string curl = "curl.exe";
+
+        [NonSerialized] public string mainHost = "https://www.procon.gr.jp";
+        [NonSerialized] public string localHost = "localhost:3000";
+        [NonSerialized] public int matchID = 10;
+        [NonSerialized] public string outputPath = "C:/Users/futur/Desktop/KCP2023";
+        [NonSerialized] public string outputJson = "state.json";
+
+        /// <summary>
+        /// .batファイル群
+        /// </summary>
+        [NonSerialized] public string getSampleServerBat = "/getSampleServer.bat";
+
+        [NonSerialized] public string getSampleServerBatPath = "C:/Users/futur/Desktop/KCP2023/server/bat";
 
         /// <summary>
         /// Curlコマンド引数取得
@@ -74,7 +80,7 @@ namespace KCP2023
         /// </summary>
         private void CurlGetJson()
         {
-            using (m_curlProcess= new Process()
+            using (m_curlProcess = new Process()
                    {
                        StartInfo = new ProcessStartInfo(curl)
                        {
@@ -84,41 +90,43 @@ namespace KCP2023
                    })
             {
                 m_curlProcess.Start();
-                DebugEx.Log($"{curl} {GetCurlArgs(0)}");
                 m_curlProcess.WaitForExit();
                 m_curlProcess.Close();
             }
         }
 
         /// <summary>
-        /// Webリクエストで取得(推奨)
+        /// Webリクエストで取得
         /// </summary>
-        private void WebRequestGetJson()
+        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
+        public void WebRequestGetJson(int type)
         {
-            WebRequest req = WebRequest.Create(GetUrl(0));
-            WebResponse res = req.GetResponse();
-            Encoding enc = Encoding.GetEncoding("Shift_JIS");
-
             try
             {
+                WebRequest req = WebRequest.Create(GetUrl(type));
+                WebResponse res = req.GetResponse();
+                Encoding enc = Encoding.GetEncoding("Shift_JIS");
+
                 Stream st = res.GetResponseStream();
-            
+
                 StreamReader sr = new StreamReader(st, enc);
-                string html = sr.ReadToEnd();
+                string json = sr.ReadToEnd();
                 sr.Close();
                 st.Close();
-                DebugEx.Log(html);
+                DebugEx.Log($"get:{json}");
+
             }
             catch (Exception e)
             {
-                throw;
+                DebugEx.Log(e.Message);
+                DebugEx.Log("サーバー接続拒否");
             }
         }
 
         /// <summary>
         /// .batファイルから実行して取得(UACの観点から非推奨)
         /// </summary>
-        private void RunGetBat()
+        private void BatGetJson()
         {
             DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             using (m_curlProcess = new Process()
@@ -131,27 +139,38 @@ namespace KCP2023
                    })
             {
                 m_curlProcess.EnableRaisingEvents = true;
-                m_curlProcess.Exited += (object sender, System.EventArgs e) =>
-                {
-                    DebugEx.Log("end");
-                };
-                
+                m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
+
                 m_curlProcess.Start();
                 m_curlProcess.WaitForExit();
                 m_curlProcess.Close();
             }
         }
 
-        private IEnumerator POSTJson()
+
+        private void WebRequestPostJson(int type, string json)
         {
-            yield return null;
+            var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
+            httpRequest.Method = "POST";
+            httpRequest.Accept = "application/json";
+            httpRequest.ContentType = "application/json";
+            
+            using (var client = new HttpClient())
+            {
+                var result = client.PostAsync(
+                    GetUrl(type),
+                    new StringContent(json, Encoding.UTF8, "application/json"));
+                DebugEx.Log(result.ToString());
+            }
+            DebugEx.Log("post");
         }
 
         private void Start()
         {
-            WebRequestGetJson();
             StartCoroutine(AsyncUpdate());
         }
+
+        private string test = "{\"turn\": 1,\"actions\": [{\"type\":2,\"dir\":4},{\"type\":2,\"dir\":4}]}";
 
         private IEnumerator AsyncUpdate()
         {
@@ -159,12 +178,16 @@ namespace KCP2023
             {
                 if (Input.GetKeyDown(KeyCode.A))
                 {
-                    WebRequestGetJson();
+                    WebRequestGetJson(hostType);
                 }
+                
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    WebRequestPostJson(hostType, test);
+                }
+
                 yield return null;
             }
         }
-
     }
 }
-
