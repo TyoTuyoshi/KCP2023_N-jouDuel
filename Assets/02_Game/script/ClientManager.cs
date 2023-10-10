@@ -127,7 +127,7 @@ namespace KCP2023
                 string json = sr.ReadToEnd();
                 //DebugEx.Log($"get:{json}");
                 //jsonをmatchesクラスへ変換して格納
-                nowMatches = Utility.Get.MatchFromJson(json);
+                nowMatches = KCP2023.Utility.MatchFromJson(json);
                 DebugEx.ShowArrayLog(nowMatches.board.territories);
 
                 sr.Close();
@@ -170,25 +170,37 @@ namespace KCP2023
         private void BatPostJson()
         {
             DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
+
+            //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
+            
+            //デバッグ用コマンド群
+            Command[] cmd = new[]
+            {
+                new Command { act = 2, dir = 4 },
+                new Command { act = 2, dir = 4 } 
+            };
+            DebugEx.Log($"{Utility.EncodeCommandJson(cmd)}");
+
             using (m_curlProcess = new Process()
                    {
                        StartInfo = new ProcessStartInfo(
                            "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
                        {
                            FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args.bat",
-                           Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
-                           CreateNoWindow = true,
-                           UseShellExecute = false
+                           //Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
+                           Arguments = $"1 {Utility.EncodeCommandJson(cmd)}",
+
+                           CreateNoWindow = false,
+                           UseShellExecute = true
                            //Verb = "RunAs"
                        }
                    })
             {
                 m_curlProcess.EnableRaisingEvents = true;
-                m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
-
+                //m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
                 m_curlProcess.Start();
-                //m_curlProcess.WaitForExit();
-                //m_curlProcess.Close();
+                m_curlProcess.WaitForExit();
+                m_curlProcess.Close();
             }
         }
 
@@ -219,8 +231,6 @@ namespace KCP2023
         {
             StartCoroutine(AsyncUpdate());
         }
-
-        private string test = "{\"turn\": 1,\"actions\": [{\"type\":2,\"dir\":4},{\"type\":2,\"dir\":4}]}";
 
         private IEnumerator AsyncUpdate()
         {

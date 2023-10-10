@@ -45,5 +45,14 @@ namespace KCP2023
         public Board board; //フィールドの状況
         public object logs; //試合ログ
     }
+
+    /// <summary>
+    /// コマンド
+    /// </summary>
+    public struct Command
+    {
+        public int act { get; set; }
+        public int dir { get; set; }
+    }
     
 }
