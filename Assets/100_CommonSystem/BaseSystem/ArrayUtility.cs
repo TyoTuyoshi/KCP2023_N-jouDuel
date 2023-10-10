@@ -1,5 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
 
 namespace BaseSystem.Utility
 {
@@ -35,6 +42,58 @@ namespace BaseSystem.Utility
                     pasteArray[i, j] = source[i][j];
                 }
             }
+        }
+        
+        public static T[,] ToTowDimensional<T>(T[] src, int width, int heigth)
+        {
+            var dest = new T[heigth, width];
+            int len = width * heigth;
+            len = src.Length < len ? src.Length : len;
+            for (int y = 0, i = 0; y < heigth; y++)
+            {
+                for (int x = 0; x < width; x++, i++)
+                {
+                    if (i >= len)
+                    {
+                        return dest;
+                    }
+                    dest[y, x] = src[i];
+                }
+            }
+
+            return dest;
+        }
+
+        /// <summary>
+        /// 文字列から整数数値を抽出して一次元配列で返す
+        /// </summary>
+        /// <param name="source">抽出元の文字列</param>
+        /// <returns>sourceから抽出された文字列の一次元配列</returns>
+        public static int[] PuckStrToIntArray(string source)
+        {
+            //TODO 文字列内に数値がない場合は、からの配列を返す
+            Func<string, string, string> RemoveStringDust = (string source, string dustSign) =>
+            {
+                foreach (var dust in dustSign) {
+                    source = source.Replace(dust.ToString(), "");
+                }
+                return source;
+            };
+            var str_array = RemoveStringDust(source, "{[]}").Split(",");
+            Array.Resize(ref str_array, str_array.Length - 1);
+            var intArray =str_array.Select(int.Parse).ToArray();
+            return intArray;
+        }
+
+        public static T[,] ToTowDimensionalPrimitives<T>(T[] src, int width, int heigth)
+        {
+            var dest = new T[heigth, width];
+            int len = width * heigth;
+            len = src.Length < len ? src.Length : len;
+
+            var size = Marshal.SizeOf(typeof(T));
+            Buffer.BlockCopy(src, 0, dest, 0, len * size);
+            return dest;
         }
     }
 }

@@ -51,12 +51,27 @@ namespace KCP2023
 
         [NonSerialized] public string getSampleServerBatPath = "C:/Users/futur/Desktop/KCP2023/server/bat";
 
+        // 現状の試合
+        private Matches nowMatches = null;
+        
         /// <summary>
         /// Curlコマンド引数取得
         /// </summary>
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
         /// <returns>Curlコマンド引数</returns>
         private string GetCurlArgs(int type)
+        {
+            string host = (type == 0) ? localHost : mainHost;
+            //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
+            return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
+        }
+
+        /// <summary>
+        /// Curl Postコマンド引数取得
+        /// </summary>
+        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
+        /// <returns>Curlコマンド引数</returns>
+        private string PostCurlArgs(int type)
         {
             string host = (type == 0) ? localHost : mainHost;
             //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
@@ -96,7 +111,7 @@ namespace KCP2023
         }
 
         /// <summary>
-        /// Webリクエストで取得
+        /// Webリクエストでjson取得
         /// </summary>
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
         public void WebRequestGetJson(int type)
@@ -106,15 +121,16 @@ namespace KCP2023
                 WebRequest req = WebRequest.Create(GetUrl(type));
                 WebResponse res = req.GetResponse();
                 Encoding enc = Encoding.GetEncoding("Shift_JIS");
-
                 Stream st = res.GetResponseStream();
-
                 StreamReader sr = new StreamReader(st, enc);
                 string json = sr.ReadToEnd();
+                //DebugEx.Log($"get:{json}");
+                //jsonをmatchesクラスへ変換して格納
+                nowMatches = Utility.Get.MatchFromJson(json);
+                //DebugEx.ShowArrayLog(nowMatches.board.territories);
+
                 sr.Close();
                 st.Close();
-                DebugEx.Log($"get:{json}");
-
             }
             catch (Exception e)
             {
@@ -147,7 +163,40 @@ namespace KCP2023
             }
         }
 
+        /// <summary>
+        /// バッチファイルから実行(推奨)
+        /// </summary>
+        private void BatPostJson()
+        {
+            DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
+            using (m_curlProcess = new Process()
+                   {
+                       StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
+                       {
+                           //Arguments = "1 [{\"type\":2.\"dir\":4}.{\"type\":2.\"dir\":4}]",
+                           //Arguments = "1 q3q1\"type\":2q5\"dir\":4q2q5{\"type\":2q5\"dir\":4q2q4",
+                           Arguments = "1 [{\"type\":2q5\"dir\":4}q5{\"type\":2q5\"dir\":4}]",
+                           FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args.bat",
+                           CreateNoWindow = true,
+                           //UseShellExecute = false
+                           //Verb = "RunAs"
+                       }
+                   })
+            {
+                m_curlProcess.EnableRaisingEvents = true;
+                m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
 
+                m_curlProcess.Start();
+                m_curlProcess.WaitForExit();
+                m_curlProcess.Close();
+            }
+        }
+
+        /// <summary>
+        /// WebリクエストからJsonをPost非推奨
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="json"></param>
         private void WebRequestPostJson(int type, string json)
         {
             var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
@@ -183,7 +232,7 @@ namespace KCP2023
                 
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    WebRequestPostJson(hostType, test);
+                    BatPostJson();
                 }
 
                 yield return null;
