@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using BaseSystem.Utility;
+using Debug = UnityEngine.Debug;
 
 namespace KCP2023
 {
@@ -53,7 +54,7 @@ namespace KCP2023
 
         // 現状の試合
         private Matches nowMatches = null;
-        
+
         /// <summary>
         /// Curlコマンド引数取得
         /// </summary>
@@ -127,7 +128,7 @@ namespace KCP2023
                 //DebugEx.Log($"get:{json}");
                 //jsonをmatchesクラスへ変換して格納
                 nowMatches = Utility.Get.MatchFromJson(json);
-                //DebugEx.ShowArrayLog(nowMatches.board.territories);
+                DebugEx.ShowArrayLog(nowMatches.board.territories);
 
                 sr.Close();
                 st.Close();
@@ -171,14 +172,13 @@ namespace KCP2023
             DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             using (m_curlProcess = new Process()
                    {
-                       StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
+                       StartInfo = new ProcessStartInfo(
+                           "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
                        {
-                           //Arguments = "1 [{\"type\":2.\"dir\":4}.{\"type\":2.\"dir\":4}]",
-                           //Arguments = "1 q3q1\"type\":2q5\"dir\":4q2q5{\"type\":2q5\"dir\":4q2q4",
-                           Arguments = "1 [{\"type\":2q5\"dir\":4}q5{\"type\":2q5\"dir\":4}]",
                            FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args.bat",
+                           Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
                            CreateNoWindow = true,
-                           //UseShellExecute = false
+                           UseShellExecute = false
                            //Verb = "RunAs"
                        }
                    })
@@ -187,8 +187,8 @@ namespace KCP2023
                 m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
 
                 m_curlProcess.Start();
-                m_curlProcess.WaitForExit();
-                m_curlProcess.Close();
+                //m_curlProcess.WaitForExit();
+                //m_curlProcess.Close();
             }
         }
 
@@ -203,7 +203,7 @@ namespace KCP2023
             httpRequest.Method = "POST";
             httpRequest.Accept = "application/json";
             httpRequest.ContentType = "application/json";
-            
+
             using (var client = new HttpClient())
             {
                 var result = client.PostAsync(
@@ -211,6 +211,7 @@ namespace KCP2023
                     new StringContent(json, Encoding.UTF8, "application/json"));
                 DebugEx.Log(result.ToString());
             }
+
             DebugEx.Log("post");
         }
 
@@ -229,7 +230,7 @@ namespace KCP2023
                 {
                     WebRequestGetJson(hostType);
                 }
-                
+
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     BatPostJson();
