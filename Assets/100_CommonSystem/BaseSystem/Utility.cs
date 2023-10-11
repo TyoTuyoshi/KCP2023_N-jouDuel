@@ -59,7 +59,7 @@ namespace KCP2023
             string jsonCmd = "q3";
             for (int i = 0; i < cmd.Length; i++)
             {
-                jsonCmd += $"q1q6typeq6:{cmd[i].act}q5" +
+                jsonCmd += $"q1q6typeq6:{cmd[i].actType}q5" +
                            $"q6dirq6:{cmd[i].dir}q2";
                 if (i < cmd.Length - 1) jsonCmd += "q5";
             }

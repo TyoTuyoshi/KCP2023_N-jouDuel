@@ -51,7 +51,7 @@ namespace KCP2023
     /// </summary>
     public struct Command
     {
-        public int act { get; set; }
+        public int actType { get; set; }
         public int dir { get; set; }
     }
 }

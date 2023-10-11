@@ -65,7 +65,7 @@ namespace BaseSystem.Utility
         }
 
         /// <summary>
-        /// 文字列から整数数値を抽出して一次元配列で返す
+        /// 文字列から整数値を抽出して一次元配列で返す(正負の値を保障)
         /// </summary>
         /// <param name="source">抽出元の文字列</param>
         /// <returns>sourceから抽出された文字列の一次元配列</returns>
@@ -82,6 +82,29 @@ namespace BaseSystem.Utility
             var str_array = RemoveStringDust(source, "{[]}").Split(",");
             Array.Resize(ref str_array, str_array.Length - 1);
             var intArray =str_array.Select(int.Parse).ToArray();
+            return intArray;
+        }
+
+        /// <summary>
+        /// 文字列から正の整数値を抽出して一次元配列で返す(正の数のみ保障)
+        /// </summary>
+        /// <param name="source">抽出元の文字列</param>
+        /// <returns>sourceから抽出された文字列の一次元配列</returns>
+        public static int[] PuckStrToIntArrayEx(string source)
+        {
+            var intArray = Regex.Matches( source, "[0-9]+")
+                .Cast<Match>()
+                .Select( m => int.Parse( m.Value ) )
+                .ToArray();
+
+            //DebugEx.ShowArrayLog(intArray);
+            //文字列から数値がない場合0の配列を返す
+            if (intArray == null || intArray.Length == 0)
+            {
+                intArray = new[] { 0 };
+            }
+            //DebugEx.ShowArrayLog(intArray);
+
             return intArray;
         }
 

@@ -82,7 +82,7 @@ namespace KCP2023
                 //jsonをmatchesクラスへ変換して試合状況更新
                 GameSceneManager.Instance.nowMatches = KCP2023.Utility.MatchFromJson(json);
                 //DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
-
+                DebugEx.Log(GameSceneManager.Instance.nowMatches.turn);
                 sr.Close();
                 st.Close();
             }
@@ -98,11 +98,11 @@ namespace KCP2023
         /// <summary>
         /// バッチファイルから実行(推奨)
         /// </summary>
-        public void PostCommandJson(Command[] cmd)
+        public void PostCommandJson(int turn,Command[] cmd)
         {
             //DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
-            DebugEx.Log($"{Utility.EncodeCommandJson(cmd)}");
+            DebugEx.Log($"POST called : {Utility.EncodeCommandJson(cmd)}");
 
             using (m_curlProcess = new Process()
                    {
@@ -110,7 +110,7 @@ namespace KCP2023
                            "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
                        {
                            FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args.bat",
-                           Arguments = $"1 {Utility.EncodeCommandJson(cmd)}",
+                           Arguments = $"{turn} {Utility.EncodeCommandJson(cmd)}",
                            //Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
                            CreateNoWindow = true,
                            UseShellExecute = false
@@ -140,16 +140,16 @@ namespace KCP2023
                     GetMatchesJson(hostType);
                 }
 
-                if (Input.GetKeyDown(KeyCode.S))
-                {
-                    //デバッグ用コマンド群
-                    Command[] cmd = new[]
-                    {
-                        new Command { act = 2, dir = 4 },
-                        new Command { act = 2, dir = 4 } 
-                    };
-                    PostCommandJson(cmd);
-                }
+                //if (Input.GetKeyDown(KeyCode.S))
+                //{
+                //    //デバッグ用コマンド群
+                //    Command[] cmd = new[]
+                //    {
+                //        new Command { actType = 2, dir = 4 },
+                //        new Command { actType = 2, dir = 4 } 
+                //    };
+                //    PostCommandJson(cmd);
+                //}
 
                 yield return null;
             }
