@@ -70,7 +70,6 @@ namespace KCP2023
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
         public void GetMatchesJson(int type)
         {
-            Matches nowMatches = GameSceneManager.Instance.nowMatches;
             try
             {
                 WebRequest req = WebRequest.Create(GetUrl(type));
@@ -79,10 +78,10 @@ namespace KCP2023
                 Stream st = res.GetResponseStream();
                 StreamReader sr = new StreamReader(st, enc);
                 string json = sr.ReadToEnd();
-                //DebugEx.Log($"get:{json}");
-                //jsonをmatchesクラスへ変換して格納
-                nowMatches = KCP2023.Utility.MatchFromJson(json);
-                DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
+
+                //jsonをmatchesクラスへ変換して試合状況更新
+                GameSceneManager.Instance.nowMatches = KCP2023.Utility.MatchFromJson(json);
+                //DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
 
                 sr.Close();
                 st.Close();
@@ -103,8 +102,6 @@ namespace KCP2023
         {
             //DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
-            
-            
             DebugEx.Log($"{Utility.EncodeCommandJson(cmd)}");
 
             using (m_curlProcess = new Process()
@@ -113,11 +110,10 @@ namespace KCP2023
                            "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args")
                        {
                            FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/postSampleServer_args.bat",
-                           //Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
                            Arguments = $"1 {Utility.EncodeCommandJson(cmd)}",
-
-                           CreateNoWindow = false,
-                           UseShellExecute = true
+                           //Arguments = "1 q3q1q6typeq6:2q5q6dirq6:4q2q5{q6typeq6:2q5q6dirq6:4q2q4",
+                           CreateNoWindow = true,
+                           UseShellExecute = false
                            //Verb = "RunAs"
                        }
                    })
@@ -165,88 +161,87 @@ namespace KCP2023
         /// </summary>
         /// <param name="type"></param>
         /// <param name="json"></param>
-        //private void WebRequestPostJson(int type, string json)
-        //{
-        //    var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
-        //    httpRequest.Method = "POST";
-        //    httpRequest.Accept = "application/json";
-        //    httpRequest.ContentType = "application/json";
-        //    using (var client = new HttpClient())
-        //    {
-        //        var result = client.PostAsync(
-        //            GetUrl(type),
-        //            new StringContent(json, Encoding.UTF8, "application/json"));
-        //        DebugEx.Log(result.ToString());
-        //    }
-        //    DebugEx.Log("post");
-        //}
-
+        private void WebRequestPostJson(int type, string json)
+        {
+            var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
+            httpRequest.Method = "POST";
+            httpRequest.Accept = "application/json";
+            httpRequest.ContentType = "application/json";
+            using (var client = new HttpClient())
+            {
+                var result = client.PostAsync(
+                    GetUrl(type),
+                    new StringContent(json, Encoding.UTF8, "application/json"));
+                DebugEx.Log(result.ToString());
+            }
+            DebugEx.Log("post");
+        }
         
         /// <summary>
         /// .batファイルから実行して取得(UACの観点から非推奨)
         /// </summary>
-        //private void BatGetJson()
-        //{
-        //    DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
-        //    using (m_curlProcess = new Process()
-        //           {
-        //               StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer")
-        //               {
-        //                   FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer.bat",
-        //                   Verb = "RunAs"
-        //               }
-        //           })
-        //    {
-        //        m_curlProcess.EnableRaisingEvents = true;
-        //        m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
-        //        m_curlProcess.Start();
-        //        m_curlProcess.WaitForExit();
-        //        m_curlProcess.Close();
-        //    }
-        //}
+       private void BatGetJson()
+       {
+           DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
+           using (m_curlProcess = new Process()
+                  {
+                      StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer")
+                      {
+                          FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer.bat",
+                          Verb = "RunAs"
+                      }
+                  })
+           {
+               m_curlProcess.EnableRaisingEvents = true;
+               m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
+               m_curlProcess.Start();
+               m_curlProcess.WaitForExit();
+               m_curlProcess.Close();
+           }
+       }
         
         /// <summary>
         /// Curlコマンド直接実行で取得(非推奨)
         /// </summary>
-        //private void CurlGetJson()
-        //{
-        //    using (m_curlProcess = new Process()
-        //           {
-        //               StartInfo = new ProcessStartInfo(curl)
-        //               {
-        //                   Arguments = GetCurlArgs(0),
-        //                   Verb = "RunAs"
-        //               }
-        //           })
-        //    {
-        //        m_curlProcess.Start();
-        //        m_curlProcess.WaitForExit();
-        //        m_curlProcess.Close();
-        //    }
-        //}
+        private void CurlGetJson()
+        {
+            using (m_curlProcess = new Process()
+                   {
+                       StartInfo = new ProcessStartInfo(curl)
+                       {
+                           Arguments = GetCurlArgs(0),
+                           Verb = "RunAs"
+                       }
+                   })
+            {
+                m_curlProcess.Start();
+                m_curlProcess.WaitForExit();
+                m_curlProcess.Close();
+            }
+        }
         
         /// <summary>
         /// Curlコマンド引数取得
         /// </summary>
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
         /// <returns>Curlコマンド引数</returns>
-        //private string GetCurlArgs(int type)
-        //{
-        //    string host = (type == 0) ? localHost : mainHost;
-        //    //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
-        //    return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
-        //}
+        private string GetCurlArgs(int type)
+        {
+            string host = (type == 0) ? localHost : mainHost;
+            //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
+            return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
+        }
 
         /// <summary>
         /// Curl Postコマンド引数取得
         /// </summary>
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
         /// <returns>Curlコマンド引数</returns>
-        ///private string PostCurlArgs(int type)
-        ///{
-        ///    string host = (type == 0) ? localHost : mainHost;
-        ///    //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
-        ///    return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
-        ///}
+        private string PostCurlArgs(int type)
+        {
+            string host = (type == 0) ? localHost : mainHost;
+            //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
+            return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
+        }
     }
 }

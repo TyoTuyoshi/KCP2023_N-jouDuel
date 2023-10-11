@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using BaseSystem;
+using TMPro;
 using UnityEngine;
 
 namespace KCP2023
@@ -16,6 +17,10 @@ namespace KCP2023
 
         //現在の試合状況
         public Matches nowMatches = new Matches();
+        
+        private List<Command> m_cmd = null;
+        public List<TMP_InputField> inputFields = null;
+        public TMP_InputField inputField = null;
 
         /// <summary>
         /// カメラをフィールド中央に設置
@@ -32,9 +37,28 @@ namespace KCP2023
             m_camera.transform.position += m_cameraOffset[GameManager.Instance.fieldSizeIndex];
         }
 
+        public void PostActionData()
+        {
+            Command[] cmd = new[]
+            {
+                new Command { act = 2, dir = 4 },
+                new Command { act = 2, dir = 4 } 
+            };
+            ClientManager.Instance.PostCommandJson(cmd);
+        }
+        
+        private void InitCommands()
+        {
+            //大工の数分コマンドを確保
+            int size = GameSceneManager.Instance.nowMatches.board.mason;
+            m_cmd = new List<Command>(size);
+            inputFields = new List<TMP_InputField>(size);
+        }
+
         void Start()
         {
             SetFieldCenterCameraPosition();
+            InitCommands();
         }
 
         private void Update()
