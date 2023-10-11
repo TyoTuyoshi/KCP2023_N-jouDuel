@@ -52,33 +52,6 @@ namespace KCP2023
 
         [NonSerialized] public string getSampleServerBatPath = "C:/Users/futur/Desktop/KCP2023/server/bat";
 
-        // 現状の試合
-        private Matches nowMatches = null;
-
-        /// <summary>
-        /// Curlコマンド引数取得
-        /// </summary>
-        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
-        /// <returns>Curlコマンド引数</returns>
-        private string GetCurlArgs(int type)
-        {
-            string host = (type == 0) ? localHost : mainHost;
-            //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
-            return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
-        }
-
-        /// <summary>
-        /// Curl Postコマンド引数取得
-        /// </summary>
-        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
-        /// <returns>Curlコマンド引数</returns>
-        private string PostCurlArgs(int type)
-        {
-            string host = (type == 0) ? localHost : mainHost;
-            //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
-            return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
-        }
-
         /// <summary>
         /// サーバーURL取得
         /// </summary>
@@ -92,31 +65,12 @@ namespace KCP2023
         }
 
         /// <summary>
-        /// Curlコマンド直接実行で取得(非推奨)
-        /// </summary>
-        private void CurlGetJson()
-        {
-            using (m_curlProcess = new Process()
-                   {
-                       StartInfo = new ProcessStartInfo(curl)
-                       {
-                           Arguments = GetCurlArgs(0),
-                           Verb = "RunAs"
-                       }
-                   })
-            {
-                m_curlProcess.Start();
-                m_curlProcess.WaitForExit();
-                m_curlProcess.Close();
-            }
-        }
-
-        /// <summary>
         /// Webリクエストでjson取得
         /// </summary>
         /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
-        public void WebRequestGetJson(int type)
+        public void GetMatchesJson(int type)
         {
+            Matches nowMatches = GameSceneManager.Instance.nowMatches;
             try
             {
                 WebRequest req = WebRequest.Create(GetUrl(type));
@@ -128,7 +82,7 @@ namespace KCP2023
                 //DebugEx.Log($"get:{json}");
                 //jsonをmatchesクラスへ変換して格納
                 nowMatches = KCP2023.Utility.MatchFromJson(json);
-                DebugEx.ShowArrayLog(nowMatches.board.territories);
+                DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
 
                 sr.Close();
                 st.Close();
@@ -140,45 +94,17 @@ namespace KCP2023
             }
         }
 
-        /// <summary>
-        /// .batファイルから実行して取得(UACの観点から非推奨)
-        /// </summary>
-        private void BatGetJson()
-        {
-            DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
-            using (m_curlProcess = new Process()
-                   {
-                       StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer")
-                       {
-                           FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer.bat",
-                           Verb = "RunAs"
-                       }
-                   })
-            {
-                m_curlProcess.EnableRaisingEvents = true;
-                m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
-
-                m_curlProcess.Start();
-                m_curlProcess.WaitForExit();
-                m_curlProcess.Close();
-            }
-        }
+        
 
         /// <summary>
         /// バッチファイルから実行(推奨)
         /// </summary>
-        private void BatPostJson()
+        public void PostCommandJson(Command[] cmd)
         {
-            DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
-
+            //DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
             
-            //デバッグ用コマンド群
-            Command[] cmd = new[]
-            {
-                new Command { act = 2, dir = 4 },
-                new Command { act = 2, dir = 4 } 
-            };
+            
             DebugEx.Log($"{Utility.EncodeCommandJson(cmd)}");
 
             using (m_curlProcess = new Process()
@@ -204,29 +130,6 @@ namespace KCP2023
             }
         }
 
-        /// <summary>
-        /// WebリクエストからJsonをPost非推奨
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="json"></param>
-        private void WebRequestPostJson(int type, string json)
-        {
-            var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
-            httpRequest.Method = "POST";
-            httpRequest.Accept = "application/json";
-            httpRequest.ContentType = "application/json";
-
-            using (var client = new HttpClient())
-            {
-                var result = client.PostAsync(
-                    GetUrl(type),
-                    new StringContent(json, Encoding.UTF8, "application/json"));
-                DebugEx.Log(result.ToString());
-            }
-
-            DebugEx.Log("post");
-        }
-
         private void Start()
         {
             StartCoroutine(AsyncUpdate());
@@ -238,16 +141,112 @@ namespace KCP2023
             {
                 if (Input.GetKeyDown(KeyCode.A))
                 {
-                    WebRequestGetJson(hostType);
+                    GetMatchesJson(hostType);
                 }
 
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    BatPostJson();
+                    //デバッグ用コマンド群
+                    Command[] cmd = new[]
+                    {
+                        new Command { act = 2, dir = 4 },
+                        new Command { act = 2, dir = 4 } 
+                    };
+                    PostCommandJson(cmd);
                 }
 
                 yield return null;
             }
         }
+        
+        
+        /// <summary>
+        /// WebリクエストからJsonをPost非推奨
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="json"></param>
+        //private void WebRequestPostJson(int type, string json)
+        //{
+        //    var httpRequest = (HttpWebRequest)WebRequest.Create(GetUrl(0));
+        //    httpRequest.Method = "POST";
+        //    httpRequest.Accept = "application/json";
+        //    httpRequest.ContentType = "application/json";
+        //    using (var client = new HttpClient())
+        //    {
+        //        var result = client.PostAsync(
+        //            GetUrl(type),
+        //            new StringContent(json, Encoding.UTF8, "application/json"));
+        //        DebugEx.Log(result.ToString());
+        //    }
+        //    DebugEx.Log("post");
+        //}
+
+        
+        /// <summary>
+        /// .batファイルから実行して取得(UACの観点から非推奨)
+        /// </summary>
+        //private void BatGetJson()
+        //{
+        //    DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
+        //    using (m_curlProcess = new Process()
+        //           {
+        //               StartInfo = new ProcessStartInfo("C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer")
+        //               {
+        //                   FileName = "C:/Users/futur/Desktop/KCP2023/server/bat/getSampleServer.bat",
+        //                   Verb = "RunAs"
+        //               }
+        //           })
+        //    {
+        //        m_curlProcess.EnableRaisingEvents = true;
+        //        m_curlProcess.Exited += (object sender, System.EventArgs e) => { DebugEx.Log("end"); };
+        //        m_curlProcess.Start();
+        //        m_curlProcess.WaitForExit();
+        //        m_curlProcess.Close();
+        //    }
+        //}
+        
+        /// <summary>
+        /// Curlコマンド直接実行で取得(非推奨)
+        /// </summary>
+        //private void CurlGetJson()
+        //{
+        //    using (m_curlProcess = new Process()
+        //           {
+        //               StartInfo = new ProcessStartInfo(curl)
+        //               {
+        //                   Arguments = GetCurlArgs(0),
+        //                   Verb = "RunAs"
+        //               }
+        //           })
+        //    {
+        //        m_curlProcess.Start();
+        //        m_curlProcess.WaitForExit();
+        //        m_curlProcess.Close();
+        //    }
+        //}
+        
+        /// <summary>
+        /// Curlコマンド引数取得
+        /// </summary>
+        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
+        /// <returns>Curlコマンド引数</returns>
+        //private string GetCurlArgs(int type)
+        //{
+        //    string host = (type == 0) ? localHost : mainHost;
+        //    //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
+        //    return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
+        //}
+
+        /// <summary>
+        /// Curl Postコマンド引数取得
+        /// </summary>
+        /// <param name="type">0:ローカルホスト　1:本選サーバー</param>
+        /// <returns>Curlコマンド引数</returns>
+        ///private string PostCurlArgs(int type)
+        ///{
+        ///    string host = (type == 0) ? localHost : mainHost;
+        ///    //return $"\"{host}/matches/{matchID}?token={token}\">{outputPath}/{outputJson}";
+        ///    return $"\"{GetUrl(type)}\">{outputPath}/{outputJson}";
+        ///}
     }
 }

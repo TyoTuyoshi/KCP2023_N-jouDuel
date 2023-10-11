@@ -13,6 +13,10 @@ namespace KCP2023
         
         [SerializeField] private Camera m_camera = null;
         [SerializeField] private Vector3[] m_cameraOffset = null;
+
+        //現在の試合状況
+        public Matches nowMatches = new Matches();
+
         /// <summary>
         /// カメラをフィールド中央に設置
         /// </summary>

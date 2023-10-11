@@ -9,7 +9,7 @@ namespace KCP2023
 {
     [Serializable]
     [RequireComponent(typeof(Rigidbody))]
-    public class Craftsman : MonoBehaviour, IPointerClickHandler
+    public class Mason : MonoBehaviour, IPointerClickHandler
     {
         public int posX;
         public int posY;

@@ -43,15 +43,15 @@ public class GameManager : SingletonBase<GameManager>
     }
 
     
-    private List<Craftsman> playAbleCraftsmen = new List<Craftsman>();
-    public List<Craftsman> GetPlayAbleCraftsmen() { return playAbleCraftsmen; }
+    private List<Mason> playAbleCraftsmen = new List<Mason>();
+    public List<Mason> GetPlayAbleCraftsmen() { return playAbleCraftsmen; }
     
     /// <summary>
     /// 
     /// </summary>
     /// <param name="craftsmen"></param>
-    public void SetPlayAbleCraftsmen(Craftsman[] craftsmen) { playAbleCraftsmen = craftsmen.ToList(); }
-    public void SetPlayAbleCraftsmen(List<Craftsman> craftsmen) { playAbleCraftsmen = craftsmen; }
+    public void SetPlayAbleCraftsmen(Mason[] craftsmen) { playAbleCraftsmen = craftsmen.ToList(); }
+    public void SetPlayAbleCraftsmen(List<Mason> craftsmen) { playAbleCraftsmen = craftsmen; }
     
     private void Start()
     {

@@ -54,5 +54,4 @@ namespace KCP2023
         public int act { get; set; }
         public int dir { get; set; }
     }
-    
 }

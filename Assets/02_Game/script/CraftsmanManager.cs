@@ -10,20 +10,20 @@ namespace KCP2023
     public class CraftsmanManager : SingletonBase<CraftsmanManager>
     {
         //職人たち
-        [NonSerialized] public List<Craftsman> craftsmen = new List<Craftsman>();
+        [NonSerialized] public List<Mason> craftsmen = new List<Mason>();
 
         private void Start()
         {
             SpawnCraftsman(GameManager.Instance.GetPlayAbleCraftsmen());
         }
 
-        private void SpawnCraftsman(List<Craftsman> craftsmen)
+        private void SpawnCraftsman(List<Mason> craftsmen)
         {
             foreach (var _ in craftsmen)
             {
-                Craftsman craftsman = Instantiate(_);
+                Mason mason = Instantiate(_);
                 //craftsman.SetPos();
-                craftsmen.Add(craftsman);
+                craftsmen.Add(mason);
             }
         }
 

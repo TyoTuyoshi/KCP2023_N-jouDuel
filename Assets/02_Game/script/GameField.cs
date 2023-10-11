@@ -26,14 +26,14 @@ namespace KCP2023
 
         //public 
         //フィールドの先手職人
-        public List<Craftsman> m_craftsmenA = new List<Craftsman>();
+        public List<Mason> m_craftsmenA = new List<Mason>();
 
         //フィールドの後手職人
-        public List<Craftsman> m_craftsmenB = new List<Craftsman>();
+        public List<Mason> m_craftsmenB = new List<Mason>();
 
         private int r = 0;
 
-        public Craftsman[] GetCraftsmen(int num)
+        public Mason[] GetCraftsmen(int num)
         {
             return (num == 0) ? m_craftsmenA.ToArray() : m_craftsmenB.ToArray();
         }
@@ -65,15 +65,15 @@ namespace KCP2023
                             break;
                         //先手職人
                         case 'a':
-                            Craftsman craftsmanA = new Craftsman();
-                            craftsmanA.SetPos(i, j);
-                            gameField.m_craftsmenA.Add(craftsmanA);
+                            Mason masonA = new Mason();
+                            masonA.SetPos(i, j);
+                            gameField.m_craftsmenA.Add(masonA);
                             break;
                         //後手職人
                         case 'b':
-                            Craftsman craftsmanB = new Craftsman();
-                            craftsmanB.SetPos(i, j);
-                            gameField.m_craftsmenB.Add(craftsmanB);
+                            Mason masonB = new Mason();
+                            masonB.SetPos(i, j);
+                            gameField.m_craftsmenB.Add(masonB);
                             break;
                         default:
                             break;
