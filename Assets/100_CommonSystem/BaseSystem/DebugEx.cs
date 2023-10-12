@@ -14,7 +14,6 @@ namespace BaseSystem.Utility
     /// </summary>
     public sealed class DebugEx : Debug
     {
-
         /// <summary>
         /// セグメントのタイプを返す
         /// </summary>

@@ -49,7 +49,7 @@ namespace KCP2023
         /// コマンド命令をjsonStringに変換して返す
         /// </summary>
         /// <param name="cmd">コマンド群</param>
-        /// <returns>コマンド群のjsonエンコード化</returns>
+        /// <returns>コマンド群のjsonエンコード</returns>
         public static string EncodeCommandJson(Command[] cmd)
         {
             //１番　２番　３番...
@@ -63,9 +63,17 @@ namespace KCP2023
                            $"q6dirq6:{cmd[i].dir}q2";
                 if (i < cmd.Length - 1) jsonCmd += "q5";
             }
+
             jsonCmd += "q4";
-            
+
             return jsonCmd;
+        }
+
+        public enum Level
+        {
+            Success,//成功
+            Failed, //サーバー接続が成功しているがデータが変だったときとかの軽度エラー
+            Error   //重大エラー
         }
     }
 }
