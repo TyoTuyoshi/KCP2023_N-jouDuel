@@ -20,7 +20,10 @@ namespace KCP2023
 
         //現在の試合状況
         [NonSerialized] public Matches  nowMatches = new Matches();
-        
+
+        //試合前の状態
+        [NonSerialized] public MatchesInfo matchesInfo = new MatchesInfo();
+
         //private List<Command> m_cmd = null;
         //入力欄リスト
         public List<TMP_InputField> inputFields = new List<TMP_InputField>();
@@ -76,7 +79,12 @@ namespace KCP2023
         public void PostCommandData()
         {
             //職人数
+            int mason = (ClientManager.Instance.hostType == 1)
+                ? matchesInfo.matches.board.mason
+                : nowMatches.board.mason;
             //int mason = nowMatches.board.mason;
+            
+            DebugEx.Log(mason);
             //アクション　方向　インデックス
             const int act = 0;
             const int dir = 1;
@@ -86,7 +94,7 @@ namespace KCP2023
             List<Command> cmds = new List<Command>();
             //文字列からコマンド群へ変換
             //todo 職人の数分ループ
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < mason; i++)
             {
                 //文字列コマンドをint配列に変換
                 var cmd_data = ArrayUtility.PuckStrToIntArrayEx(inputFields[i].text);

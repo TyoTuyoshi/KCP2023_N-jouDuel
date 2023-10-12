@@ -108,6 +108,7 @@ namespace KCP2023
 
         /// <summary>
         /// クライアント(通信する際)の設定
+        /// 書き換え保存が可能
         /// </summary>
         [Serializable]
         public struct ClientConfig

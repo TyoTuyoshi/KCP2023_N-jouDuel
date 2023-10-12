@@ -93,7 +93,8 @@ namespace KCP2023
 
         //簡易デバッグ
         public string JsonPath = "C:/Users/futur/Desktop/KCP2023/server/getMatchesInfo.json";
-
+        
+        public Config gameConfig = new Config();
         /// <summary>
         /// 設定jsonの読み取り
         /// </summary>
@@ -102,17 +103,11 @@ namespace KCP2023
         {
             try
             {
-                //StreamReader configJson = new StreamReader(configJsonPath);
-                //string configStr = configJson.ReadToEnd();
-                //var config = JsonUtility.FromJson<Config>(configStr);
+                StreamReader configJson = new StreamReader(configJsonPath);
+                string configStr = configJson.ReadToEnd();
+                gameConfig = JsonUtility.FromJson<Config>(configStr);
                 //DebugEx.Log(configStr);
                 //DebugEx.Log(config.client.name);
-                
-                StreamReader configJson = new StreamReader(JsonPath);
-                string configStr = configJson.ReadToEnd();
-                MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(configStr);
-                DebugEx.Log(configStr);
-                DebugEx.Log(matchesInfo.matches.board.width);
             }
             catch (Exception e)
             {
@@ -120,6 +115,18 @@ namespace KCP2023
                 return false;
                 throw;
             }
+            return true;
+        }
+
+        private bool GetMatchesInfoJson()
+        {
+            StreamReader configJson = new StreamReader(JsonPath);
+            string configStr = configJson.ReadToEnd();
+            //MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(configStr);
+            MatchesInfo matchesInfo = Utility.MatchInfoFromJson(configStr);
+            //DebugEx.Log(configStr);
+            //DebugEx.Log(matchesInfo.matches.bonus.wall);
+            //DebugEx.ShowArrayLog(matchesInfo.matches.board.masons);
             return true;
         }
 

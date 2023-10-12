@@ -44,6 +44,39 @@ namespace KCP2023
             matches.board.territories = GetBoardInfo(s[idx_territories].Substring(offset), w, h);
             return matches;
         }
+        
+        public static MatchesInfo MatchInfoFromJson(string json)
+        {
+            MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(json);
+
+            int w = matchesInfo.matches.board.width;
+            int h = matchesInfo.matches.board.height;
+            //文字列データ切り出し
+            string[] s = json.Split("\"");
+            const int offset = 2;
+
+            //int i = 0;
+            //
+            //foreach (var a in s)
+            //{
+            //    DebugEx.Log($"{i} {a}");
+            //    i++;
+            //}
+            
+            //ボードの情報取得
+            Func<string, int, int, int[,]> GetBoardInfo = (string source, int w, int h) =>
+            {
+                return ArrayUtility.ToTowDimensional(
+                    ArrayUtility.PuckStrToIntArray(source),
+                    w, h);
+            };
+            const int idx_structure = 26;
+            const int idx_masons = 28;
+            //ボード情報を解析して取得
+            matchesInfo.matches.board.structures = GetBoardInfo(s[idx_structure].Substring(offset), w, h);
+            matchesInfo.matches.board.masons = GetBoardInfo(s[idx_masons].Substring(offset), w, h);
+            return matchesInfo;
+        }
 
         /// <summary>
         /// コマンド命令をjsonStringに変換して返す

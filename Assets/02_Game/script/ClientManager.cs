@@ -16,6 +16,9 @@ namespace KCP2023
 {
     /// <summary>
     /// クライアントマネージャー
+    /// 一定時間ごとに試合状況をGETする。
+    /// サーバーとのGET/POSTのやり取りの専門クラス
+    /// POSTはGameSceneManagerのPostCommandData()から行う
     /// </summary>
     public class ClientManager : SingletonBase<ClientManager>
     {
@@ -39,7 +42,7 @@ namespace KCP2023
         /// </summary>
         [NonSerialized] public const string curl = "curl.exe";
 
-        [NonSerialized] public string mainHost = "https://www.procon.gr.jp";
+        [NonSerialized] public string mainHost = "www.procon.gr.jp";
         [NonSerialized] public string localHost = "localhost:3000";
         [NonSerialized] public int matchID = 10;
         //[NonSerialized] public string outputPath = "C:/Users/futur/Desktop/KCP2023";
@@ -60,8 +63,8 @@ namespace KCP2023
         /// <returns>接続先のURL</returns>
         private string GetUrl(int type, bool isInfo = false)
         {
-            string host = (type == 0) ? localHost : mainHost;
             string http = (type == 0) ? "http://" : "https://";
+            string host = (type == 0) ? localHost : mainHost;
             return isInfo
                 ? $"{http}{host}/matches?token={token}"
                 : $"{http}{host}/matches/{matchID}?token={token}";
@@ -85,8 +88,8 @@ namespace KCP2023
 
                 //jsonをmatchesクラスへ変換して試合状況更新
                 GameSceneManager.Instance.nowMatches = KCP2023.Utility.MatchFromJson(json);
-                DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.masons);
-                DebugEx.Log(GameSceneManager.Instance.nowMatches.turn);
+                //DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.masons);
+                //DebugEx.Log(GameSceneManager.Instance.nowMatches.turn);
                 sr.Close();
                 st.Close();
                 GameSceneManager.Instance.ShowLogMessage("試合状況が取得成功");
@@ -110,17 +113,16 @@ namespace KCP2023
         {
             try
             {
-                WebRequest req = WebRequest.Create(GetUrl(type));
+                //試合前の状態を要求
+                WebRequest req = WebRequest.Create(GetUrl(type, true));
                 WebResponse res = req.GetResponse();
                 Encoding enc = Encoding.GetEncoding("Shift_JIS");
                 Stream st = res.GetResponseStream();
                 StreamReader sr = new StreamReader(st, enc);
                 string json = sr.ReadToEnd();
 
-                //jsonをmatchesクラスへ変換して試合状況更新
-                GameSceneManager.Instance.nowMatches = KCP2023.Utility.MatchFromJson(json);
-                //DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
-                DebugEx.Log(GameSceneManager.Instance.nowMatches.board.structures);
+                //jsonをMatchesInfoクラスへ変換して試合情報取得
+                GameSceneManager.Instance.matchesInfo = Utility.MatchInfoFromJson(json);
                 sr.Close();
                 st.Close();
                 GameSceneManager.Instance.ShowLogMessage("試合情報が取得成功");
@@ -134,12 +136,11 @@ namespace KCP2023
                 return false;
             }
         }
-        
 
         /// <summary>
         /// バッチファイルから実行(推奨)
         /// </summary>
-        public bool PostCommandJson(int turn,Command[] cmd)
+        public bool PostCommandJson(int turn, Command[] cmd)
         {
             //DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
@@ -174,6 +175,7 @@ namespace KCP2023
                     m_curlProcess.WaitForExit();
                     m_curlProcess.Close();
                 }
+
                 return true;
             }
         }
@@ -186,11 +188,19 @@ namespace KCP2023
         private float m_getIntervalSec = 0.2f;
         private float m_getIntervalCnt = 0.0f;
 
+        private bool isEnd = false;
+
         private IEnumerator AsyncUpdate()
         {
-            while (true)
+            //スペースキーを押して開始
+            while (!Input.GetKeyDown(KeyCode.Space)) yield return null;
+            
+            //開始前の試合情報を要求(本選のみ)
+            while (hostType == 1 && !GetMatchesInfoJson(hostType)) yield return null;
+
+            while (!isEnd)
             {
-                //一定時間ごとにGET実行
+                //一定時間ごとにGETリクエスト
                 if (m_getIntervalCnt > m_getIntervalSec)
                 {
                     m_getIntervalCnt = 0.0f;
@@ -198,24 +208,30 @@ namespace KCP2023
                 }
                 m_getIntervalCnt += Time.deltaTime;
 
-                //if (Input.GetKeyDown(KeyCode.A))
+                //本選のみ上限ターン到達時に終了フラグ
+                if (GameSceneManager.Instance.nowMatches.turn
+                    == GameSceneManager.Instance.matchesInfo.matches.turns
+                    && hostType == 1)
+                {
+                    isEnd = true;
+                }
+
+                //デバッグ用2ターンで終了フラグ
+                //if (GameSceneManager.Instance.nowMatches.turn == 2)
                 //{
-                //    GetMatchesJson(hostType);
+                //    isEnd = true;
                 //}
 
-                //if (Input.GetKeyDown(KeyCode.S))
-                //{
-                //    //デバッグ用コマンド群
-                //    Command[] cmd = new[]
-                //    {
-                //        new Command { actType = 2, dir = 4 },
-                //        new Command { actType = 2, dir = 4 } 
-                //    };
-                //    PostCommandJson(cmd);
-                //}
+                //Aキー強制GETリクエスト
+                if (Input.GetKeyDown(KeyCode.A))
+                {
+                    GetMatchesJson(hostType);
+                }
 
                 yield return null;
             }
+
+            DebugEx.Log("end");
         }
         /// <summary>
         /// WebリクエストからJsonをPost非推奨
