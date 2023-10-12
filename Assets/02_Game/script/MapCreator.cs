@@ -5,43 +5,47 @@ using BaseSystem.Utility;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class MapCreator : SingletonBase<MapCreator>
+namespace KCP2023
 {
-    private char[,] m_fieldData = new char[,]{};
-
-    private GameObject[,] m_field = new GameObject[,]{};
-    
-    [SerializeField] private GameObject s;
-    [SerializeField] private Vector3 m_offsetPos = new Vector3();
-    void Start()
+    public class MapCreator : SingletonBase<MapCreator>
     {
-        m_fieldData = GameManager.Instance.fieldData;
-        SetGameField();
-    }
+        private char[,] m_fieldData = new char[,] { };
 
-    /// <summary>
-    /// ゲームフィールドをシーンに反映させる。
-    /// </summary>
-    private void SetGameField()
-    {
-        for (int i = 0; i < m_fieldData.GetLength(0); i++)
+        private GameObject[,] m_field = new GameObject[,] { };
+
+        [SerializeField] private GameObject s;
+        [SerializeField] private Vector3 m_offsetPos = new Vector3();
+
+        void Start()
         {
-            for (int j = 0; j < m_fieldData.GetLength(1); j++)
+            m_fieldData = GameManager.Instance.fieldData;
+            SetGameField();
+        }
+
+        /// <summary>
+        /// ゲームフィールドをシーンに反映させる。
+        /// </summary>
+        private void SetGameField()
+        {
+            for (int i = 0; i < m_fieldData.GetLength(0); i++)
             {
-                //TODO 完全改造
-                //城、平地の場合
-                if (m_fieldData[i, j] != '1') 
+                for (int j = 0; j < m_fieldData.GetLength(1); j++)
                 {
-                    GameObject chip = Instantiate(s);
-                    chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
+                    //TODO 完全改造
+                    //城、平地の場合
+                    if (m_fieldData[i, j] != '1')
+                    {
+                        GameObject chip = Instantiate(s);
+                        chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
+                    }
                 }
             }
         }
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
     }
 }
