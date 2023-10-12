@@ -212,9 +212,8 @@ namespace KCP2023
                 m_getIntervalCnt += Time.deltaTime;
 
                 //本選のみ上限ターン到達時に終了フラグ
-                if (GameSceneManager.Instance.nowMatches.turn
-                    == GameSceneManager.Instance.matchesInfo.matches.turns
-                    && hostType == 1)
+                if (hostType == 1 && GameSceneManager.Instance.nowMatches.turn
+                    == GameSceneManager.Instance.matchesInfo.matches.turns)
                 {
                     isEnd = true;
                 }

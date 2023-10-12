@@ -126,7 +126,7 @@ namespace KCP2023
         /// <summary>
         /// ランダムな命令を自動でセット
         /// </summary>
-        /// <param name="index">テキストのインデックス, -1の場合は全て</param>
+        /// <param name="index">テキストのインデックス, -1の場合は全て, -2全コマンドクリア</param>
         public void SetRandomCommand(int index)
         {
             Func<string> RandomCmd = () =>
@@ -136,32 +136,26 @@ namespace KCP2023
                 return $"{rnd_act} {rnd_dir}";
             };
 
-            if (index == -1)
+            switch (index)
             {
-                foreach (var inputs in inputFields)
-                {
-                    inputs.text = RandomCmd();
-                }
+                case -1:
+                    foreach (var inputs in inputFields) inputs.text = RandomCmd();
+                    break;
+                case -2:
+                    foreach (var inputs in inputFields) inputs.text = "";
+                    break;
+                default:
+                    inputFields[index].text = RandomCmd();
+                    break;
             }
-            else inputFields[index].text = RandomCmd();
-        }
-
-        /// <summary>
-        /// コマンド初期化
-        /// </summary>
-        private void InitCommands()
-        {
-            //大工の数分コマンドを確保
-            //todo null修正
-            int size = 2;// GameSceneManager.Instance.nowMatches.board.mason;
-            //m_cmd = new List<Command>(size);
         }
 
         void Start()
         {
             SetFieldCenterCameraPosition();
-            InitCommands();
         }
+        
+        
 
         private void Update()
         {
