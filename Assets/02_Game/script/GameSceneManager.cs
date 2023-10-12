@@ -7,6 +7,8 @@ using BaseSystem.Utility;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace KCP2023
 {
@@ -78,6 +80,9 @@ namespace KCP2023
         /// </summary>
         public void PostCommandData()
         {
+            //クライアントの準備が出来ていない場合はスルー
+            if (!ClientManager.Instance.ablePost) return;
+            
             //職人数
             int mason = (ClientManager.Instance.hostType == 1)
                 ? matchesInfo.matches.board.mason
@@ -93,7 +98,6 @@ namespace KCP2023
             //コマンド文字列取得
             List<Command> cmds = new List<Command>();
             //文字列からコマンド群へ変換
-            //todo 職人の数分ループ
             for (int i = 0; i < mason; i++)
             {
                 //文字列コマンドをint配列に変換
@@ -111,12 +115,35 @@ namespace KCP2023
                 //Command _cmd = new Command { act = cmd_data[act], dir = cmd_data[dir] };
                 cmds.Add(new Command { actType = cmd_data[act], dir = cmd_data[dir] });
             }
-
+            //POSTができたかどうか?
             if (ClientManager.Instance.PostCommandJson(nowTurnCnt, cmds.ToArray()))
             {
                 ShowLogMessage("POST完了");
             }
             else ShowLogMessage("POSTエラー", Utility.Level.Error);
+        }
+
+        /// <summary>
+        /// ランダムな命令を自動でセット
+        /// </summary>
+        /// <param name="index">テキストのインデックス, -1の場合は全て</param>
+        public void SetRandomCommand(int index)
+        {
+            Func<string> RandomCmd = () =>
+            {
+                int rnd_act = Random.Range(1, 4);
+                int rnd_dir = Random.Range(1, 8);
+                return $"{rnd_act} {rnd_dir}";
+            };
+
+            if (index == -1)
+            {
+                foreach (var inputs in inputFields)
+                {
+                    inputs.text = RandomCmd();
+                }
+            }
+            else inputFields[index].text = RandomCmd();
         }
 
         /// <summary>

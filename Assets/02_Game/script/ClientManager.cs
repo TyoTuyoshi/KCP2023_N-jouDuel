@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using BaseSystem.Utility;
+using UnityEngine.Serialization;
 using Debug = UnityEngine.Debug;
 
 namespace KCP2023
@@ -188,15 +189,17 @@ namespace KCP2023
         private float m_getIntervalSec = 0.2f;
         private float m_getIntervalCnt = 0.0f;
 
-        private bool isEnd = false;
+        public bool ablePost = false;
+        public bool isEnd = false;
 
         private IEnumerator AsyncUpdate()
         {
             //スペースキーを押して開始
             while (!Input.GetKeyDown(KeyCode.Space)) yield return null;
-            
             //開始前の試合情報を要求(本選のみ)
             while (hostType == 1 && !GetMatchesInfoJson(hostType)) yield return null;
+
+            ablePost = true;
 
             while (!isEnd)
             {
