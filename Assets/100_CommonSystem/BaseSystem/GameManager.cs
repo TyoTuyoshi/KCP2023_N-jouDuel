@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BaseSystem;
+using BaseSystem.Utility;
 using BaseSystem.Utility.File;
 using UnityEngine;
 
@@ -54,8 +56,7 @@ namespace KCP2023
                 return Array.IndexOf(fsize, fieldSize);
             }
         }
-
-
+        
         private List<Mason> playAbleCraftsmen = new List<Mason>();
 
         public List<Mason> GetPlayAbleCraftsmen()
@@ -79,17 +80,56 @@ namespace KCP2023
 
         private void Start()
         {
+            
         }
 
         private void Update()
         {
+            
+        }
 
+        //設定jsonファイルのパス
+        public string configJsonPath = "C:/Users/futur/Desktop/KCP2023/config/config.json";
+
+        //簡易デバッグ
+        public string JsonPath = "C:/Users/futur/Desktop/KCP2023/server/getMatchesInfo.json";
+
+        /// <summary>
+        /// 設定jsonの読み取り
+        /// </summary>
+        /// <returns>true:成功 false:失敗</returns>
+        private bool ReadConfigJson()
+        {
+            try
+            {
+                //StreamReader configJson = new StreamReader(configJsonPath);
+                //string configStr = configJson.ReadToEnd();
+                //var config = JsonUtility.FromJson<Config>(configStr);
+                //DebugEx.Log(configStr);
+                //DebugEx.Log(config.client.name);
+                
+                StreamReader configJson = new StreamReader(JsonPath);
+                string configStr = configJson.ReadToEnd();
+                MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(configStr);
+                DebugEx.Log(configStr);
+                DebugEx.Log(matchesInfo.matches.board.width);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+                throw;
+            }
+            return true;
         }
 
         protected override void Init()
         {
             Base.Instance.AddToBase(this);
             FadeManager.Create();
+
+            //設定ファイルの読み取り
+            ReadConfigJson();
             //OptionManager.Create();
         }
     }

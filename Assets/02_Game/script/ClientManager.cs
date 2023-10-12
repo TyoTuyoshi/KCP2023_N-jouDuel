@@ -85,7 +85,7 @@ namespace KCP2023
 
                 //jsonをmatchesクラスへ変換して試合状況更新
                 GameSceneManager.Instance.nowMatches = KCP2023.Utility.MatchFromJson(json);
-                //DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.territories);
+                DebugEx.ShowArrayLog(GameSceneManager.Instance.nowMatches.board.masons);
                 DebugEx.Log(GameSceneManager.Instance.nowMatches.turn);
                 sr.Close();
                 st.Close();
