@@ -71,6 +71,7 @@ namespace KCP2023
                 : $"{http}{host}/matches/{matchID}?token={token}";
         }
 
+      
         /// <summary>
         /// Webリクエストでjson取得
         /// </summary>
@@ -145,7 +146,7 @@ namespace KCP2023
         {
             //DebugEx.Log(getSampleServerBatPath + getSampleServerBat);
             //Dictionary<int, int>[] test = new Dictionary<int, int>() { { 1, 1 }, { 2, 4 } };
-            DebugEx.Log($"POST called : {Utility.EncodeCommandJson(cmd)}");
+            //DebugEx.Log($"POST called : {Utility.EncodeCommandJson(cmd)}");
 
             using (m_curlProcess = new Process()
                    {

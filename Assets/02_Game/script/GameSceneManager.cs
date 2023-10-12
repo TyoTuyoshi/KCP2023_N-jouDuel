@@ -16,12 +16,12 @@ namespace KCP2023
     {
         //自身が先手か否か。(先手A,後手B)
         public bool isFirst = false;
-        
+
         [SerializeField] private Camera m_camera = null;
         [SerializeField] private Vector3[] m_cameraOffset = null;
 
         //現在の試合状況
-        [NonSerialized] public Matches  nowMatches = new Matches();
+        [NonSerialized] public Matches nowMatches = new Matches();
 
         //試合前の状態
         [NonSerialized] public MatchesInfo matchesInfo = new MatchesInfo();
@@ -29,12 +29,16 @@ namespace KCP2023
         //private List<Command> m_cmd = null;
         //入力欄リスト
         public List<TMP_InputField> inputFields = new List<TMP_InputField>();
+
         //ログ表示リスト
         [SerializeField] private TextMeshProUGUI outputLogField = new TextMeshProUGUI();
 
-        public int nowTurnCnt = 0;
 
+        //ログカウンタ
         private int m_logCnt = 0;
+
+        //現在のターン
+        private int m_nowTurn = 0;
 
         /// <summary>
         /// 操作/実行ログの表示
@@ -50,8 +54,9 @@ namespace KCP2023
             if (m_logCnt > logRange)
             {
                 outputLogField.text =
-                    outputLogField.text.Substring(outputLogField.text.IndexOf("\n")+1);
+                    outputLogField.text.Substring(outputLogField.text.IndexOf("\n") + 1);
             }
+
             //エラーごとに色分け
             Color[] levelColor = { Color.white, Color.yellow, Color.red };
             //ログ出力
@@ -82,14 +87,14 @@ namespace KCP2023
         {
             //クライアントの準備が出来ていない場合はスルー
             if (!ClientManager.Instance.ablePost) return;
-            
+
             //職人数
             int mason = (ClientManager.Instance.hostType == 1)
                 ? matchesInfo.matches.board.mason
                 : nowMatches.board.mason;
             //int mason = nowMatches.board.mason;
+            //DebugEx.Log(mason);
             
-            DebugEx.Log(mason);
             //アクション　方向　インデックス
             const int act = 0;
             const int dir = 1;
@@ -115,8 +120,9 @@ namespace KCP2023
                 //Command _cmd = new Command { act = cmd_data[act], dir = cmd_data[dir] };
                 cmds.Add(new Command { actType = cmd_data[act], dir = cmd_data[dir] });
             }
+
             //POSTができたかどうか?
-            if (ClientManager.Instance.PostCommandJson(nowTurnCnt, cmds.ToArray()))
+            if (ClientManager.Instance.PostCommandJson(m_nowTurn + 1, cmds.ToArray()))
             {
                 ShowLogMessage("POST完了");
             }
@@ -129,6 +135,7 @@ namespace KCP2023
         /// <param name="index">テキストのインデックス, -1の場合は全て, -2全コマンドクリア</param>
         public void SetRandomCommand(int index)
         {
+            //ランダムコマンド用簡易ラムダ
             Func<string> RandomCmd = () =>
             {
                 int rnd_act = Random.Range(1, 4);
@@ -138,13 +145,13 @@ namespace KCP2023
 
             switch (index)
             {
-                case -1:
+                case -1: //全コマンド更新
                     foreach (var inputs in inputFields) inputs.text = RandomCmd();
                     break;
-                case -2:
+                case -2: //全コマンド削除
                     foreach (var inputs in inputFields) inputs.text = "";
                     break;
-                default:
+                default: //インデックスのコマンド更新
                     inputFields[index].text = RandomCmd();
                     break;
             }
@@ -154,12 +161,19 @@ namespace KCP2023
         {
             SetFieldCenterCameraPosition();
         }
-        
-        
 
         private void Update()
         {
-            if (isFirst) ;
+            //サーバー接続可能までスルー
+            //if (!ClientManager.Instance.ablePost) return;
+
+            //ターン更新時にフィールドを更新
+            if (nowMatches.turn != m_nowTurn)
+            {
+                m_nowTurn = nowMatches.turn;
+                DebugEx.Log($"turn change! {m_nowTurn}");
+                MapCreator.Instance.SetGameField();
+            }
         }
     }
 }
