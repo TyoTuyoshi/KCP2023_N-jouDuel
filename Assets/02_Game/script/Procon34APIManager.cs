@@ -126,6 +126,7 @@ namespace KCP2023
 
             public string postBatchPath; //postするbatファイルのパス
             public string postBatchName; //postするbatファイルの名前
+            public string localMatchesJsonPath;//ローカルホストデバッグ用のjsonファイルの参照パス
         }
         public UserConfig user;
         public ClientConfig client;

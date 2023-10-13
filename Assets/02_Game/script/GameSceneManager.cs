@@ -162,40 +162,76 @@ namespace KCP2023
             }
         }
         
-        
-        private float turnPastTime = 0.0f;
-        private float nextTurnTime = 3.0f;
-        private const float defaultNextTurnTime = 15.0f;
+        private float turnPastTime = 0.0f;               //ターン経過時間
+        private float nextTurnTime = 3.0f;               //次のターンまでの時間
+        private const float defaultNextTurnTime = 15.0f; //デフォルトの次のターン時間
 
-        void Start()
+        private void Start()
         {
-            SetFieldCenterCameraPosition();
+            //SetFieldCenterCameraPosition();
 
             nextTurnTime = Utility.isMainHost()
                 ? GameSceneManager.Instance.matchesInfo.matches.turnSeconds
                 : defaultNextTurnTime;
-
+            StartCoroutine(AsyncUpdate());
         }
 
-        private void Update()
+        /// <summary>
+        /// 非同期アップデート
+        /// </summary>
+        private IEnumerator AsyncUpdate()
         {
             //サーバー接続可能までスルー
-            if (!ClientManager.Instance.ablePost|| !ClientManager.Instance.isStart) return;
+            while (!ClientManager.Instance.ablePost) yield return null;
+            //接続後に初期マップの配置
+            //MapCreator.Instance.SetGameFieldInit();
+            //getリクエスト成功まで送信
+            while (!ClientManager.Instance.isStart) yield return null;
 
-            //入力化の時間のカウントダウン(次のターンまでの残り時間)
-            turnPastTime += Time.deltaTime;
-            nextTurnTimer.text = $"ターン猶予時間{(nextTurnTime - turnPastTime).ToString("f2")}秒";
-
-            //ターン更新時にフィールドを更新
-            if (nowMatches.turn != m_nowTurn)
+            //クライアント側の全ターンが終わるまで
+            while (!ClientManager.Instance.isEnd)
             {
-                turnPastTime = 0.0f;
-                m_nowTurn = nowMatches.turn;
-                //DebugEx.Log($"turn change! {m_nowTurn}");
-                turnCnt.text = $"現在 {m_nowTurn}ターン目";
-                ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
-                MapCreator.Instance.SetGameField();
+                //入力化の時間のカウントダウン(次のターンまでの残り時間)
+                turnPastTime += Time.deltaTime;
+                nextTurnTimer.text = $"ターン猶予時間 {(nextTurnTime - turnPastTime).ToString("f2")}秒";
+                
+                //ターン更新時にフィールドを更新
+                if (nowMatches.turn != m_nowTurn)
+                {
+                    turnPastTime = 0.0f;
+                    m_nowTurn = nowMatches.turn;
+                    //DebugEx.Log($"turn change! {m_nowTurn}");
+                    turnCnt.text = $"現在 {m_nowTurn}ターン目";
+                    ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
+                    MapCreator.Instance.SetGameFieldNow();
+                }
+
+                yield return null;
             }
         }
+
+        //private void Update()
+        //{
+        //    //サーバー接続可能までスルー
+        //    if (!ClientManager.Instance.ablePost) return;
+        //    MapCreator.Instance.SetGameField(GameManager.Instance.gameConfig.client.hostType);
+//
+        //    if (!ClientManager.Instance.isStart) return;
+//
+        //    //入力化の時間のカウントダウン(次のターンまでの残り時間)
+        //    turnPastTime += Time.deltaTime;
+        //    nextTurnTimer.text = $"ターン猶予時間{(nextTurnTime - turnPastTime).ToString("f2")}秒";
+//
+        //    //ターン更新時にフィールドを更新
+        //    if (nowMatches.turn != m_nowTurn)
+        //    {
+        //        turnPastTime = 0.0f;
+        //        m_nowTurn = nowMatches.turn;
+        //        //DebugEx.Log($"turn change! {m_nowTurn}");
+        //        turnCnt.text = $"現在 {m_nowTurn}ターン目";
+        //        ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
+        //        MapCreator.Instance.SetGameField();
+        //    }
+        //}
     }
 }

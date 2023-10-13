@@ -41,8 +41,8 @@ namespace KCP2023
         //陣地の配色
         private Color[] territoriesColor = new[]
         {
-            Color.white,    //中立
             Color.red,      //自チームの陣地
+            Color.white,    //中立
             Color.blue,     //相手チームの陣地
             Color.yellow,   //両チームの陣地
         };
@@ -57,10 +57,11 @@ namespace KCP2023
         /// <summary>
         /// ゲームフィールドをシーンに反映させる。
         /// </summary>
-        public void SetGameField()
+        public void SetGameFieldNow()
         {
             //現状のフィールドを取得
             Board field = GameSceneManager.Instance.nowMatches.board;
+            //DebugEx.Log(matchesInfo);
 
             ClearFieldObjs();
             m_fieldObjs = new List<GameObject>();
@@ -76,11 +77,51 @@ namespace KCP2023
                     //陣地に着色
                     int color = field.territories[i, j];
                     SetTerritoriesColor(ref chip, color);
-                    
+
+                    //GameObject chipOver = Instantiate(Layer1FieldChips[index]);
+
                     //chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
                     m_fieldObjs.Add(chip);
                 }
             }
+        }
+        
+        /// <summary>
+        /// ゲームフィールドをシーンに反映させる。(初期化)
+        /// </summary>
+        public void SetGameFieldInit()
+        {
+            //nullリターン
+            if (GameSceneManager.Instance.matchesInfo.matches.board == null)
+            {
+                GameSceneManager.Instance.ShowLogMessage($"フィールド情報取得不能", Utility.Level.Error);
+                return;
+            }
+            //現状のフィールドを取得
+            Board field = GameSceneManager.Instance.matchesInfo.matches.board;
+            //DebugEx.Log(matchesInfo);
+
+            ClearFieldObjs();
+            m_fieldObjs = new List<GameObject>();
+            for (int i = 0; i < field.width; i++)
+            {
+                for (int j = 0; j < field.height; j++)
+                {
+                    //地形の配置
+                    //プレハブのインデックスに代用
+                    int index = field.structures[i, j];
+                    GameObject chip = Instantiate(Layer0FieldChips[index]) as GameObject;
+                    //地形を並べる
+                    SetPosition(ref chip, i, j);
+
+                    //職人の配置
+                    //GameObject chipOver = Instantiate(Layer1FieldChips[index]);
+
+                    //chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
+                    m_fieldObjs.Add(chip);
+                }
+            }
+            GameSceneManager.Instance.ShowLogMessage($"フィールド配置完了");
         }
 
         /// <summary>
@@ -88,6 +129,7 @@ namespace KCP2023
         /// </summary>
         private void ClearFieldObjs()
         {
+            GameSceneManager.Instance.ShowLogMessage("マップリスト開放", Utility.Level.PopUp);
             if (m_fieldObjs.Count == 0 || m_fieldObjs == null) return;
             foreach (var chip in m_fieldObjs) Destroy(chip);
             m_fieldObjs.Clear();

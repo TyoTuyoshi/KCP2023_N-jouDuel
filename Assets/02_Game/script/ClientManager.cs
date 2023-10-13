@@ -127,30 +127,54 @@ namespace KCP2023
         /// <returns>true:取得に成功した false:取得に失敗した</returns>
         public bool GetMatchesInfoJson(int type)
         {
-            try
+            if (type == 1)
             {
-                //試合前の状態を要求
-                WebRequest req = WebRequest.Create(GetUrl(type, true));
-                WebResponse res = req.GetResponse();
-                Encoding enc = Encoding.GetEncoding("Shift_JIS");
-                Stream st = res.GetResponseStream();
-                StreamReader sr = new StreamReader(st, enc);
-                string json = sr.ReadToEnd();
+                try
+                {
+                    //試合前の状態を要求
+                    WebRequest req = WebRequest.Create(GetUrl(type, true));
+                    WebResponse res = req.GetResponse();
+                    Encoding enc = Encoding.GetEncoding("Shift_JIS");
+                    Stream st = res.GetResponseStream();
+                    StreamReader sr = new StreamReader(st, enc);
+                    string json = sr.ReadToEnd();
 
-                //jsonをMatchesInfoクラスへ変換して試合情報取得
-                GameSceneManager.Instance.matchesInfo = Utility.MatchInfoFromJson(json);
-                sr.Close();
-                st.Close();
-                GameSceneManager.Instance.ShowLogMessage("試合情報が取得成功");
-                return true;
+                    //jsonをMatchesInfoクラスへ変換して試合情報取得
+                    GameSceneManager.Instance.matchesInfo = Utility.MatchInfoFromJson(json);
+                    sr.Close();
+                    st.Close();
+                    GameSceneManager.Instance.ShowLogMessage("試合情報が取得成功");
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    DebugEx.Log(e.Message);
+                    DebugEx.Log("サーバー接続拒否");
+                    GameSceneManager.Instance.ShowLogMessage("試合情報が取得失敗", Utility.Level.Error);
+                    return false;
+                }
             }
-            catch (Exception e)
+            //ローカルホストの場合ローカルのJsonを参照
+            if (type == 0)
             {
-                DebugEx.Log(e.Message);
-                DebugEx.Log("サーバー接続拒否");
-                GameSceneManager.Instance.ShowLogMessage("試合情報が取得失敗", Utility.Level.Error);
-                return false;
+                try
+                {
+                    //ローカルパスを参照にjsonファイルを読み取り
+                    StreamReader matchesInfoJson = new StreamReader(GameManager.Instance.gameConfig.client.localMatchesJsonPath);
+                    string matchesInfoStr = matchesInfoJson.ReadToEnd();
+                    GameSceneManager.Instance.matchesInfo = Utility.MatchInfoFromJson(matchesInfoStr);
+                    
+                    //DebugEx.Log(GameSceneManager.Instance.matchesInfo.matches.board.structures);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    DebugEx.Log(e.Message);
+                    GameSceneManager.Instance.ShowLogMessage("試合情報Json取得失敗", Utility.Level.Error);
+                    return false;
+                }
             }
+            return false;
         }
 
         /// <summary>
@@ -206,34 +230,40 @@ namespace KCP2023
             hostType = GameManager.Instance.gameConfig.client.hostType;
             //GET更新頻度設定
             m_getIntervalSec = GameManager.Instance.gameConfig.client.getIntervalSec;
-            DebugEx.Log(m_getIntervalSec);
+            //DebugEx.Log(m_getIntervalSec);
         }
 
         private void Start()
         {
             StartCoroutine(AsyncUpdate());
         }
-
+        
+        /// <summary>
+        /// 非同期アップデート
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator AsyncUpdate()
         {
             //スペースキーを押して開始
             while (!Input.GetKeyDown(KeyCode.Space)) yield return null;
             GameSceneManager.Instance.ShowLogMessage($"起動完了：接続プロセス開始", Utility.Level.PopUp);
-
             float t = 0.0f;
             const float wait_t = 12.0f;
-            //開始前の試合情報を要求(本選のみ)
-            while (hostType == 1 && !GetMatchesInfoJson(hostType))
+            
+            //開始前の試合情報を要求
+            while (!GetMatchesInfoJson(hostType))
             {
                 //時間超過時にエラーログ表示
                 t += Time.deltaTime;
                 if (t > wait_t)
                 {
-                    GameSceneManager.Instance.ShowLogMessage($"プロセスエラー：接続待機時間超過", Utility.Level.Error);
+                    GameSceneManager.Instance.ShowLogMessage($"エラー：接続待機時間超過", Utility.Level.Error);
                 }
                 yield return null;
-            }
-            GameSceneManager.Instance.ShowLogMessage($"接続完了：メインプロセス開始", Utility.Level.PopUp);
+            } 
+            //接続後に初期マップの配置
+            MapCreator.Instance.SetGameFieldInit();
+            GameSceneManager.Instance.ShowLogMessage($"接続完了：プロセス開始", Utility.Level.PopUp);
 
             ablePost = true;
 

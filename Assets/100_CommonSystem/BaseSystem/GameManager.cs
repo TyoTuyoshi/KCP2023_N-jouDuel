@@ -7,6 +7,7 @@ using BaseSystem;
 using BaseSystem.Utility;
 using BaseSystem.Utility.File;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace KCP2023
 {
@@ -89,10 +90,10 @@ namespace KCP2023
         }
 
         //設定jsonファイルのパス
-        public string configJsonPath = "C:/Users/futur/Desktop/KCP2023/config/config.json";
+        public string configJsonPath = "C:/config/config.json";
 
-        //簡易デバッグ
-        public string JsonPath = "C:/config/config.json";
+        //簡易デバッグ用の試合Jsonのパス
+        //public string LocalMatchesJsonPath = "C:/Users/futur/Desktop/KCP2023/server/json/getMatchesInfo.json";
         
         public Config gameConfig = new Config();
         /// <summary>
@@ -107,20 +108,27 @@ namespace KCP2023
                 string configStr = configJson.ReadToEnd();
                 gameConfig = JsonUtility.FromJson<Config>(configStr);
                 DebugEx.Log(configStr);
-                DebugEx.Log(gameConfig.client.name);
+                //sDebugEx.Log(gameConfig.client.name);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                //Console.WriteLine(e);
                 return false;
                 throw;
             }
             return true;
         }
 
+        public string LocalMatchesJsonPat = "";
+        /// <summary>
+        /// 試合開始前に取得する試合情報
+        /// </summary>
+        /// <returns></returns>
         private bool GetMatchesInfoJson()
         {
-            StreamReader configJson = new StreamReader(JsonPath);
+            //パスの取得
+            string LocalMatchesJsonPath = gameConfig.client.localMatchesJsonPath;
+            StreamReader configJson = new StreamReader(LocalMatchesJsonPath);
             string configStr = configJson.ReadToEnd();
             //MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(configStr);
             MatchesInfo matchesInfo = Utility.MatchInfoFromJson(configStr);
