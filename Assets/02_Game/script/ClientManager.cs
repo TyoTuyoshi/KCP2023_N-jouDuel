@@ -55,6 +55,18 @@ namespace KCP2023
         [NonSerialized] public string getSampleServerBat = "/getSampleServer.bat";
 
         [NonSerialized] public string getSampleServerBatPath = "C:/Users/futur/Desktop/KCP2023/server/bat";
+        
+        //getリクエスト周期(sec)
+        private float m_getIntervalSec = 0.2f;
+        //周期カウンタ
+        private float m_getIntervalCnt = 0.0f;
+
+        //ポストできる状態か
+        public bool ablePost = false;
+        //getが成功したフラグ
+        public bool isStart = false;
+        //終了フラグ
+        public bool isEnd = false;
 
         /// <summary>
         /// サーバーURL取得
@@ -71,7 +83,7 @@ namespace KCP2023
                 : $"{http}{host}/matches/{matchID}?token={token}";
         }
 
-      
+
         /// <summary>
         /// Webリクエストでjson取得
         /// </summary>
@@ -95,6 +107,8 @@ namespace KCP2023
                 sr.Close();
                 st.Close();
                 GameSceneManager.Instance.ShowLogMessage("試合状況が取得成功");
+                //初回に接続成功フラグを立てる
+                if (!isStart) isStart = true;
                 return true;
             }
             catch (Exception e)
@@ -182,12 +196,6 @@ namespace KCP2023
             }
         }
 
-        private float m_getIntervalSec = 0.2f;
-        private float m_getIntervalCnt = 0.0f;
-
-        public bool ablePost = false;
-        public bool isEnd = false;
-        
         /// <summary>
         /// Start()以前に実行される
         /// config.jsonパラメータの設定
@@ -226,7 +234,6 @@ namespace KCP2023
                 yield return null;
             }
             GameSceneManager.Instance.ShowLogMessage($"接続完了：メインプロセス開始", Utility.Level.PopUp);
-
 
             ablePost = true;
 

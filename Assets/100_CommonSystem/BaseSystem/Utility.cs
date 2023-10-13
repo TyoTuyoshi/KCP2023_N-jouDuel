@@ -102,6 +102,11 @@ namespace KCP2023
             return jsonCmd;
         }
 
+        public static bool isMainHost()
+        {
+            return ClientManager.Instance.hostType == 1;
+        }
+
         public enum Level
         {
             Success,//成功

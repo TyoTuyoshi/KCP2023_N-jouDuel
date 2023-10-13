@@ -2140,6 +2140,7 @@ MonoBehaviour:
   - {fileID: 1800994993}
   outputLogField: {fileID: 2101353724}
   turnCnt: {fileID: 1717368116}
+  nextTurnTimer: {fileID: 1738820538}
 --- !u!114 &1671207397 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6869788364498999205, guid: 09ab61c8b44d25148a11cb77bcc3ebd9,
@@ -2571,7 +2572,7 @@ GameObject:
   - component: {fileID: 1738820539}
   - component: {fileID: 1738820538}
   m_Layer: 5
-  m_Name: txt_nextTurnTime
+  m_Name: txt_nextTurnTimer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2593,7 +2594,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 45.8017, y: -191.5}
+  m_AnchoredPosition: {x: 45.8017, y: -125.5}
   m_SizeDelta: {x: 542.7038, y: 102.8845}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1738820538

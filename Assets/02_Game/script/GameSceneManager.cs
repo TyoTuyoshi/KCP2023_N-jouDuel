@@ -55,6 +55,7 @@ namespace KCP2023
 
             //ログ上方範囲削除で更新
             const int logRange = 13;
+            const int pad = 6;
             if (m_logCnt > logRange)
             {
                 outputLogField.text =
@@ -65,7 +66,7 @@ namespace KCP2023
             Color[] levelColor = { Color.white, Color.yellow, Color.red,Color.green, };
             //ログ出力
             outputLogField.text += $"<color=#{levelColor[(int)level].ToHexString()}> "
-                                   + $"{m_logCnt.ToString().PadRight(7)}: "
+                                   + $"{m_logCnt.ToString().PadRight(pad)}:"
                                    + $"{message}</color>\n";
         }
 
@@ -164,16 +165,22 @@ namespace KCP2023
         
         private float turnPastTime = 0.0f;
         private float nextTurnTime = 3.0f;
+        private const float defaultNextTurnTime = 15.0f;
 
         void Start()
         {
             SetFieldCenterCameraPosition();
-            nextTurnTime = GameSceneManager.Instance.matchesInfo.matches.turnSeconds;
+
+            nextTurnTime = Utility.isMainHost()
+                ? GameSceneManager.Instance.matchesInfo.matches.turnSeconds
+                : defaultNextTurnTime;
+
         }
+
         private void Update()
         {
             //サーバー接続可能までスルー
-            if (!ClientManager.Instance.ablePost) return;
+            if (!ClientManager.Instance.ablePost|| !ClientManager.Instance.isStart) return;
 
             //入力化の時間のカウントダウン(次のターンまでの残り時間)
             turnPastTime += Time.deltaTime;
