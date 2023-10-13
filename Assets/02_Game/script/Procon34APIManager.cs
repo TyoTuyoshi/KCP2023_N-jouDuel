@@ -116,7 +116,7 @@ namespace KCP2023
             public string header; //ヘッダ
             public string token; //トークン
             public string name; //チーム名
-            public int connectHost; //接続先ホスト
+            [FormerlySerializedAs("connectHost")] public int hostType; //接続先ホスト
 
             public float getIntervalSec; //GETリクエスト頻度(sec)
             public float postIntervalSec; //POSTリクエスト頻度(sec)

@@ -33,7 +33,11 @@ namespace KCP2023
         //ログ表示リスト
         [SerializeField] private TextMeshProUGUI outputLogField = new TextMeshProUGUI();
 
+        //ターン数表示テキスト
+        [SerializeField] private TextMeshProUGUI turnCnt = new TextMeshProUGUI();
 
+        //次のターンまでの残り時間
+        [SerializeField] private TextMeshProUGUI nextTurnTimer = new TextMeshProUGUI();
         //ログカウンタ
         private int m_logCnt = 0;
 
@@ -58,7 +62,7 @@ namespace KCP2023
             }
 
             //エラーごとに色分け
-            Color[] levelColor = { Color.white, Color.yellow, Color.red };
+            Color[] levelColor = { Color.white, Color.yellow, Color.red,Color.green, };
             //ログ出力
             outputLogField.text += $"<color=#{levelColor[(int)level].ToHexString()}> "
                                    + $"{m_logCnt.ToString().PadRight(7)}: "
@@ -156,22 +160,33 @@ namespace KCP2023
                     break;
             }
         }
+        
+        
+        private float turnPastTime = 0.0f;
+        private float nextTurnTime = 3.0f;
 
         void Start()
         {
             SetFieldCenterCameraPosition();
+            nextTurnTime = GameSceneManager.Instance.matchesInfo.matches.turnSeconds;
         }
-
         private void Update()
         {
             //サーバー接続可能までスルー
-            //if (!ClientManager.Instance.ablePost) return;
+            if (!ClientManager.Instance.ablePost) return;
+
+            //入力化の時間のカウントダウン(次のターンまでの残り時間)
+            turnPastTime += Time.deltaTime;
+            nextTurnTimer.text = $"ターン猶予時間{(nextTurnTime - turnPastTime).ToString("f2")}秒";
 
             //ターン更新時にフィールドを更新
             if (nowMatches.turn != m_nowTurn)
             {
+                turnPastTime = 0.0f;
                 m_nowTurn = nowMatches.turn;
-                DebugEx.Log($"turn change! {m_nowTurn}");
+                //DebugEx.Log($"turn change! {m_nowTurn}");
+                turnCnt.text = $"現在 {m_nowTurn}ターン目";
+                ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
                 MapCreator.Instance.SetGameField();
             }
         }

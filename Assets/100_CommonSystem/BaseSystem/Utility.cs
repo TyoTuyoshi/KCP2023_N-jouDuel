@@ -106,7 +106,8 @@ namespace KCP2023
         {
             Success,//成功
             Failed, //サーバー接続が成功しているがデータが変だったときとかの軽度エラー
-            Error   //重大エラー
+            Error,  //重大エラー
+            PopUp   //注目レベル
         }
     }
 }

@@ -182,23 +182,51 @@ namespace KCP2023
             }
         }
 
-        private void Start()
-        {
-            StartCoroutine(AsyncUpdate());
-        }
-
         private float m_getIntervalSec = 0.2f;
         private float m_getIntervalCnt = 0.0f;
 
         public bool ablePost = false;
         public bool isEnd = false;
+        
+        /// <summary>
+        /// Start()以前に実行される
+        /// config.jsonパラメータの設定
+        /// </summary>
+        protected override void Init()
+        {
+            //ホストタイプ 0:ローカルホスト 1:本選サーバー
+            hostType = GameManager.Instance.gameConfig.client.hostType;
+            //GET更新頻度設定
+            m_getIntervalSec = GameManager.Instance.gameConfig.client.getIntervalSec;
+            DebugEx.Log(m_getIntervalSec);
+        }
+
+        private void Start()
+        {
+            StartCoroutine(AsyncUpdate());
+        }
 
         private IEnumerator AsyncUpdate()
         {
             //スペースキーを押して開始
             while (!Input.GetKeyDown(KeyCode.Space)) yield return null;
+            GameSceneManager.Instance.ShowLogMessage($"起動完了：接続プロセス開始", Utility.Level.PopUp);
+
+            float t = 0.0f;
+            const float wait_t = 12.0f;
             //開始前の試合情報を要求(本選のみ)
-            while (hostType == 1 && !GetMatchesInfoJson(hostType)) yield return null;
+            while (hostType == 1 && !GetMatchesInfoJson(hostType))
+            {
+                //時間超過時にエラーログ表示
+                t += Time.deltaTime;
+                if (t > wait_t)
+                {
+                    GameSceneManager.Instance.ShowLogMessage($"プロセスエラー：接続待機時間超過", Utility.Level.Error);
+                }
+                yield return null;
+            }
+            GameSceneManager.Instance.ShowLogMessage($"接続完了：メインプロセス開始", Utility.Level.PopUp);
+
 
             ablePost = true;
 

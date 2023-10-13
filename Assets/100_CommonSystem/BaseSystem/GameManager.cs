@@ -92,7 +92,7 @@ namespace KCP2023
         public string configJsonPath = "C:/Users/futur/Desktop/KCP2023/config/config.json";
 
         //簡易デバッグ
-        public string JsonPath = "C:/Users/futur/Desktop/KCP2023/server/getMatchesInfo.json";
+        public string JsonPath = "C:/config/config.json";
         
         public Config gameConfig = new Config();
         /// <summary>
@@ -106,8 +106,8 @@ namespace KCP2023
                 StreamReader configJson = new StreamReader(configJsonPath);
                 string configStr = configJson.ReadToEnd();
                 gameConfig = JsonUtility.FromJson<Config>(configStr);
-                //DebugEx.Log(configStr);
-                //DebugEx.Log(config.client.name);
+                DebugEx.Log(configStr);
+                DebugEx.Log(gameConfig.client.name);
             }
             catch (Exception e)
             {
