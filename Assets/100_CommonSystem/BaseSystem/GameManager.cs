@@ -79,16 +79,6 @@ namespace KCP2023
             playAbleCraftsmen = craftsmen;
         }
 
-        private void Start()
-        {
-            
-        }
-
-        private void Update()
-        {
-            
-        }
-
         //設定jsonファイルのパス
         public string configJsonPath = "C:/config/config.json";
 
@@ -119,25 +109,6 @@ namespace KCP2023
             return true;
         }
 
-        public string LocalMatchesJsonPat = "";
-        /// <summary>
-        /// 試合開始前に取得する試合情報
-        /// </summary>
-        /// <returns></returns>
-        private bool GetMatchesInfoJson()
-        {
-            //パスの取得
-            string LocalMatchesJsonPath = gameConfig.client.localMatchesJsonPath;
-            StreamReader configJson = new StreamReader(LocalMatchesJsonPath);
-            string configStr = configJson.ReadToEnd();
-            //MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(configStr);
-            MatchesInfo matchesInfo = Utility.MatchInfoFromJson(configStr);
-            //DebugEx.Log(configStr);
-            //DebugEx.Log(matchesInfo.matches.bonus.wall);
-            //DebugEx.ShowArrayLog(matchesInfo.matches.board.masons);
-            return true;
-        }
-
         protected override void Init()
         {
             Base.Instance.AddToBase(this);
@@ -145,7 +116,6 @@ namespace KCP2023
 
             //設定ファイルの読み取り
             ReadConfigJson();
-            //OptionManager.Create();
         }
     }
 }

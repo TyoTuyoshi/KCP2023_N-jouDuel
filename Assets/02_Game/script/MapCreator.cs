@@ -107,20 +107,29 @@ namespace KCP2023
             {
                 for (int j = 0; j < field.height; j++)
                 {
-                    //地形の配置
+                    //第零層
                     //プレハブのインデックスに代用
                     int index = field.structures[i, j];
                     GameObject chip = Instantiate(Layer0FieldChips[index]) as GameObject;
                     //地形を並べる
-                    SetPosition(ref chip, i, j);
+                    SetPosition(ref chip, i, j,0);
 
-                    //職人の配置
-                    //GameObject chipOver = Instantiate(Layer1FieldChips[index]);
+                    //第一層のインデックス
+                    int index_layer1 = field.masons[i, j];
+                    if (index_layer1 != 0)
+                    {
+                        //職人の配置
+                        GameObject chipOver = Instantiate(Layer1FieldChips[0]);
+                        
+                        
+                        SetPosition(ref chipOver, i, j,1);
+                    }
 
                     //chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
                     m_fieldObjs.Add(chip);
                 }
             }
+
             GameSceneManager.Instance.ShowLogMessage($"フィールド配置完了");
         }
 
@@ -135,9 +144,9 @@ namespace KCP2023
             m_fieldObjs.Clear();
         }
 
-        private void SetPosition(ref GameObject obj, float x, float z)
+        private void SetPosition(ref GameObject obj, float x, float z, float y=0.0f)
         {
-            obj.transform.position = m_offsetPos + new Vector3(x, 0, z);
+            obj.transform.position = m_offsetPos + new Vector3(x, y, z);
         }
         
         private void SetTerritoriesColor(ref GameObject obj,int type)
