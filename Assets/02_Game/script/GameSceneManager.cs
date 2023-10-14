@@ -20,9 +20,6 @@ namespace KCP2023
         //現在の試合状況
         [NonSerialized] public Matches nowMatches = new Matches();
 
-        //試合前の状態
-        //[NonSerialized] public MatchesInfo matchesInfo = new MatchesInfo();
-
         //入力欄リスト
         public List<TMP_InputField> inputFields = new List<TMP_InputField>();
 
@@ -34,10 +31,12 @@ namespace KCP2023
 
         //次のターンまでの残り時間
         [SerializeField] private TextMeshProUGUI nextTurnTimer = new TextMeshProUGUI();
+
         //ログカウンタ
         private int m_logCnt = 0;
+
         //現在のターン
-        private int m_nowTurn = 1;
+        private int m_nowTurn = 0;
 
         /// <summary>
         /// 操作/実行ログの表示
@@ -47,7 +46,6 @@ namespace KCP2023
         {
             //ログナンバー更新
             m_logCnt++;
-
             //ログ上方範囲削除で更新
             const int logRange = 8;
             const int pad = 6;
@@ -58,7 +56,7 @@ namespace KCP2023
             }
 
             //エラーごとに色分け
-            Color[] levelColor = { Color.white, Color.yellow, Color.red,Color.green, };
+            Color[] levelColor = { Color.white, Color.yellow, Color.red, Color.green, };
             //ログ出力
             outputLogField.text += $"<color=#{levelColor[(int)level].ToHexString()}> "
                                    + $"{m_logCnt.ToString().PadRight(pad)}:"
@@ -85,11 +83,7 @@ namespace KCP2023
             {
                 //クライアントの準備が出来ていない場合はスルー
                 if (!ClientManager.Instance.isStart) return;
-
-                //職人数
                 int mason = GameManager.Instance.gameConfig.nowMatches.masons;
-
-               
                 //アクション　方向　インデックス
                 const int act = 0;
                 const int dir = 1;
@@ -97,7 +91,6 @@ namespace KCP2023
                 const int elm_cnt = 2;
                 //コマンド文字列取得
                 List<Command> cmds = new List<Command>();
-                //文字列からコマンド群へ変換
                 for (int i = 0; i < mason; i++)
                 {
                     //文字列コマンドをint配列に変換
@@ -110,11 +103,9 @@ namespace KCP2023
                         cmd_data[dir] = 0;
                     }
 
-                    //cmd_data デバッグ用
                     cmds.Add(new Command { actType = cmd_data[act], dir = cmd_data[dir] });
                 }
 
-                //int isFirst = matchesInfo.matches.first ? 1 : 2;
                 //POSTができたかどうか?
                 if (ClientManager.Instance.PostCommandJson(m_nowTurn + 1, cmds.ToArray()))
                 {
@@ -125,8 +116,6 @@ namespace KCP2023
             catch (Exception e)
             {
                 DebugEx.Log(e.Message);
-                //Console.WriteLine(e);
-                //throw;
             }
         }
 
@@ -157,11 +146,10 @@ namespace KCP2023
                     break;
             }
         }
-        
-        private float turnPastTime = 0.0f;               //ターン経過時間
-        private float turnSeconds = 3.0f;               //次のターンまでの時間
-        private const float defaultNextTurnTime = 10.0f; //デフォルトの次のターン時間
 
+
+        private float turnPastTime = 0.0f; //ターン経過時間
+        private float turnSeconds = 3.0f; //次のターンまでの時間
 
         protected override void Init()
         {
@@ -173,7 +161,6 @@ namespace KCP2023
         {
             //タイマー初期化
             nextTurnTimer.text = $"ターン猶予時間 {turnSeconds.ToString("f2")}秒";
-
             //カメラ位置調整
             SetCameraPosition();
             StartCoroutine(AsyncUpdate());
@@ -193,8 +180,6 @@ namespace KCP2023
             //クライアントマネージャ側で全ターンが終わるまで
             while (!ClientManager.Instance.isEnd)
             {
-                //nextTurnTime = GameSceneManager.Instance.matchesInfo.matches.turnSeconds;
-                
                 //入力化の時間のカウントダウン(次のターンまでの残り時間)
                 turnPastTime += Time.deltaTime;
                 //0秒への正規化
@@ -205,14 +190,17 @@ namespace KCP2023
                 //強制コマンドポスト
                 const float powerPostTime = 2.0f;
                 if (limTime < powerPostTime) PostCommandData();
-                
+
                 //ターン更新時にフィールドを更新
                 if (nowMatches.turn != m_nowTurn)
                 {
                     turnPastTime = 0.0f;
                     m_nowTurn = nowMatches.turn;
                     //DebugEx.Log($"turn change! {m_nowTurn}");
-                    turnCnt.text = $"現在 {m_nowTurn}ターン目";
+                    string first = GameManager.Instance.gameConfig.nowMatches.first ? "自分" : "相手";
+                    string nowTurn = nowMatches.turn % 2 == 0 ? $"後攻({first})" : $"先攻({first})";
+                    turnCnt.text = $"現在 {m_nowTurn}ターン目 {nowTurn}";
+                    
                     ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
                     MapCreator.Instance.SetGameFieldNow();
                 }

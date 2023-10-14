@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,39 +45,6 @@ namespace KCP2023
             matches.board.territories = GetBoardInfo(s[idx_territories].Substring(offset), w, h);
             return matches;
         }
-        
-        public static MatchesInfo MatchInfoFromJson(string json)
-        {
-            MatchesInfo matchesInfo = JsonUtility.FromJson<MatchesInfo>(json);
-
-            int w = matchesInfo.matches.board.width;
-            int h = matchesInfo.matches.board.height;
-            //文字列データ切り出し
-            string[] s = json.Split("\"");
-            const int offset = 2;
-
-            //int i = 0;
-            //
-            //foreach (var a in s)
-            //{
-            //    DebugEx.Log($"{i} {a}");
-            //    i++;
-            //}
-            
-            //ボードの情報取得
-            Func<string, int, int, int[,]> GetBoardInfo = (string source, int w, int h) =>
-            {
-                return ArrayUtility.ToTowDimensional(
-                    ArrayUtility.PuckStrToIntArray(source),
-                    w, h);
-            };
-            const int idx_structure = 26;
-            const int idx_masons = 28;
-            //ボード情報を解析して取得
-            matchesInfo.matches.board.structures = GetBoardInfo(s[idx_structure].Substring(offset), w, h);
-            matchesInfo.matches.board.masons = GetBoardInfo(s[idx_masons].Substring(offset), w, h);
-            return matchesInfo;
-        }
 
         /// <summary>
         /// コマンド命令をjsonStringに変換して返す
@@ -101,10 +69,32 @@ namespace KCP2023
 
             return jsonCmd;
         }
-
+        
         public static bool isMainHost()
         {
             return ClientManager.Instance.hostType == 1;
+        }
+        
+        public static List<List<Command>> ReadLineCmd(string path, int mason)
+        {
+            List<List<Command>> cmds = new List<List<Command>>();
+            StreamReader csvFile = new StreamReader(@path);
+            while (!csvFile.EndOfStream)
+            {
+                const int act = 0;
+                const int dir = 1;
+                string[] readData = csvFile.ReadLine().Split(",");
+                if (readData.Length != mason) return null;
+
+                Command[] cmd = new Command[mason];
+                for (int i = 0; i < mason; i++)
+                {
+                    cmd[i].actType = int.Parse(readData[i][act].ToString());
+                    cmd[i].dir = int.Parse(readData[i][dir].ToString());
+                }
+            }
+
+            return null;
         }
 
         public enum Level
