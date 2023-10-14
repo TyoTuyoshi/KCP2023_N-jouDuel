@@ -4,6 +4,8 @@ using BaseSystem;
 using BaseSystem.Utility;
 using UnityEngine;
 using UnityEngine.Serialization;
+using TMPro;
+using Unity.VisualScripting;
 
 namespace KCP2023
 {
@@ -17,7 +19,7 @@ namespace KCP2023
 
         void Start()
         {
-            m_fieldData = GameManager.Instance.fieldData;
+            //m_fieldData = GameManager.Instance.fieldData;
             //SetGameField();
         }
 
@@ -53,7 +55,7 @@ namespace KCP2023
             Color.white,//自チームの色
             Color.black //相手チームの色
         };
-        
+
         /// <summary>
         /// ゲームフィールドをシーンに反映させる。
         /// </summary>
@@ -61,7 +63,6 @@ namespace KCP2023
         {
             //現状のフィールドを取得
             Board field = GameSceneManager.Instance.nowMatches.board;
-            //DebugEx.Log(matchesInfo);
 
             ClearFieldObjs();
             m_fieldObjs = new List<GameObject>();
@@ -78,59 +79,49 @@ namespace KCP2023
                     int color = field.territories[i, j];
                     SetTerritoriesColor(ref chip, color);
 
+                    //職人配置
+                    int index_mason = field.masons[i, j];
+                    if (index_mason != 0)
+                    {
+                        //職人の配置
+                        GameObject chipOver = Instantiate(Layer1FieldChips[0]);
+                        //表示鷹さ
+                        const float height = 0.5f;
+                        SetPosition(ref chipOver, i, j, height);
+                        //ナンバー割振り 第一層は職人確定!
+                        var number = chipOver.transform.GetChild(0).GetComponent<TextMeshPro>();
+                        //自チーム：赤　相手チーム：青
+                        Color col = new Color();
+                        if (index_mason > 0) col = Color.red;
+                        else if (index_mason < 0) col = Color.blue;
+                        number.text = $"<color=#{col.ToHexString()}>" +
+                                      $"{index_mason.ToString()}</color>";
+                        //フィールドリストへ
+                        m_fieldObjs.Add(chipOver);
+                    }
+
+                    //城壁配置
+                    //0:なし 1:自チーム　2:相手チーム
+                    int index_wall = field.walls[i, j];
+                    if (index_wall != 0)
+                    {
+                        //LayerFieldChips[1]は城壁確定
+                        GameObject wall = Instantiate(Layer1FieldChips[1]);
+                        Color[] wallColor = new[] { Color.red, Color.blue};
+                        wall.GetComponent<Renderer>()
+                            .material.SetColor("_Color", wallColor[index_wall]);
+                        //座標設定
+                        SetPosition(ref wall, i, j);
+                        m_fieldObjs.Add(wall);
+                    }
+                    //自チーム：赤　相手チーム：青
+
                     //GameObject chipOver = Instantiate(Layer1FieldChips[index]);
 
                     //chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
                     m_fieldObjs.Add(chip);
                 }
             }
-        }
-        
-        /// <summary>
-        /// ゲームフィールドをシーンに反映させる。(初期化)
-        /// </summary>
-        public void SetGameFieldInit()
-        {
-            //nullリターン
-            if (GameSceneManager.Instance.matchesInfo.matches.board == null)
-            {
-                GameSceneManager.Instance.ShowLogMessage($"フィールド情報取得不能", Utility.Level.Error);
-                return;
-            }
-            //現状のフィールドを取得
-            Board field = GameSceneManager.Instance.matchesInfo.matches.board;
-            //DebugEx.Log(matchesInfo);
-
-            ClearFieldObjs();
-            m_fieldObjs = new List<GameObject>();
-            for (int i = 0; i < field.width; i++)
-            {
-                for (int j = 0; j < field.height; j++)
-                {
-                    //第零層
-                    //プレハブのインデックスに代用
-                    int index = field.structures[i, j];
-                    GameObject chip = Instantiate(Layer0FieldChips[index]) as GameObject;
-                    //地形を並べる
-                    SetPosition(ref chip, i, j,0);
-
-                    //第一層のインデックス
-                    int index_layer1 = field.masons[i, j];
-                    if (index_layer1 != 0)
-                    {
-                        //職人の配置
-                        GameObject chipOver = Instantiate(Layer1FieldChips[0]);
-                        
-                        
-                        SetPosition(ref chipOver, i, j,1);
-                    }
-
-                    //chip.transform.position = m_offsetPos + new Vector3(i, 0, j);
-                    m_fieldObjs.Add(chip);
-                }
-            }
-
-            GameSceneManager.Instance.ShowLogMessage($"フィールド配置完了");
         }
 
         /// <summary>

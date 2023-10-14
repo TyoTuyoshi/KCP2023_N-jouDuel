@@ -116,7 +116,7 @@ namespace KCP2023
             public string header; //ヘッダ
             public string token; //トークン
             public string name; //チーム名
-            [FormerlySerializedAs("connectHost")] public int hostType; //接続先ホスト
+            public int connectHost; //接続先ホスト
 
             public float getIntervalSec; //GETリクエスト頻度(sec)
             public float postIntervalSec; //POSTリクエスト頻度(sec)
@@ -128,8 +128,25 @@ namespace KCP2023
             public string postBatchName; //postするbatファイルの名前
             public string localMatchesJsonPath;//ローカルホストデバッグ用のjsonファイルの参照パス
         }
+
+        /// <summary>
+        /// これからはじめる試合の情報
+        /// 試合前にjsonを直接書き換える
+        /// </summary>
+        [Serializable]
+        public struct NowMatches
+        {
+            public int id;//試合ID
+            public int turns;//ターン数
+            public int turnSeconds;//ターン時間
+            public int masons;//職人の数
+            public int size;//フィールド一辺のサイズ
+            public bool first;//先攻か?
+        }
+
         public UserConfig user;
         public ClientConfig client;
+        public NowMatches nowMatches;
     }
 
 

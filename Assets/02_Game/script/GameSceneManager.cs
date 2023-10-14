@@ -14,19 +14,15 @@ namespace KCP2023
 {
     public class GameSceneManager : SingletonBase<GameSceneManager>
     {
-        //自身が先手か否か。(先手A,後手B)
-        public bool isFirst = false;
-
         [SerializeField] private Camera m_camera = null;
-        [SerializeField] private Vector3[] m_cameraOffset = null;
+        [SerializeField] private Vector3[] m_cameraPos = null;
 
         //現在の試合状況
         [NonSerialized] public Matches nowMatches = new Matches();
 
         //試合前の状態
-        [NonSerialized] public MatchesInfo matchesInfo = new MatchesInfo();
+        //[NonSerialized] public MatchesInfo matchesInfo = new MatchesInfo();
 
-        //private List<Command> m_cmd = null;
         //入力欄リスト
         public List<TMP_InputField> inputFields = new List<TMP_InputField>();
 
@@ -40,9 +36,8 @@ namespace KCP2023
         [SerializeField] private TextMeshProUGUI nextTurnTimer = new TextMeshProUGUI();
         //ログカウンタ
         private int m_logCnt = 0;
-
         //現在のターン
-        private int m_nowTurn = 0;
+        private int m_nowTurn = 1;
 
         /// <summary>
         /// 操作/実行ログの表示
@@ -54,7 +49,7 @@ namespace KCP2023
             m_logCnt++;
 
             //ログ上方範囲削除で更新
-            const int logRange = 13;
+            const int logRange = 8;
             const int pad = 6;
             if (m_logCnt > logRange)
             {
@@ -73,16 +68,12 @@ namespace KCP2023
         /// <summary>
         /// カメラをフィールド中央に設置
         /// </summary>
-        public void SetFieldCenterCameraPosition()
+        public void SetCameraPosition()
         {
-            int fieldSize = GameManager.Instance.fieldSize;
-            Vector3 cameraPos = m_camera.transform.position;
-            float chipHalf = 0.5f;
-
-            //X軸方向の位置調整
-            m_camera.transform.position = ((float)fieldSize / 2.0f - chipHalf) * Vector3.right;
-            //Y-Z軸方向の位置調整
-            m_camera.transform.position += m_cameraOffset[GameManager.Instance.fieldSizeIndex];
+            int fieldSize = GameManager.Instance.gameConfig.nowMatches.size;
+            int[] allSize = new[] { 11, 13, 15, 17, 21, 25 };
+            int index = Array.IndexOf(allSize, fieldSize);
+            m_camera.transform.position = m_cameraPos[index];
         }
 
         /// <summary>
@@ -90,48 +81,53 @@ namespace KCP2023
         /// </summary>
         public void PostCommandData()
         {
-            //クライアントの準備が出来ていない場合はスルー
-            if (!ClientManager.Instance.ablePost) return;
-
-            //職人数
-            int mason = (ClientManager.Instance.hostType == 1)
-                ? matchesInfo.matches.board.mason
-                : nowMatches.board.mason;
-            //int mason = nowMatches.board.mason;
-            //DebugEx.Log(mason);
-            
-            //アクション　方向　インデックス
-            const int act = 0;
-            const int dir = 1;
-            //データの数（アクション,方向）２
-            const int elm_cnt = 2;
-            //コマンド文字列取得
-            List<Command> cmds = new List<Command>();
-            //文字列からコマンド群へ変換
-            for (int i = 0; i < mason; i++)
+            try
             {
-                //文字列コマンドをint配列に変換
-                var cmd_data = ArrayUtility.PuckStrToIntArrayEx(inputFields[i].text);
-                //配列サイズが異なる場合のデフォルト修正(エラー回避)
-                if (cmd_data.Length != elm_cnt)
+                //クライアントの準備が出来ていない場合はスルー
+                if (!ClientManager.Instance.isStart) return;
+
+                //職人数
+                int mason = GameManager.Instance.gameConfig.nowMatches.masons;
+
+               
+                //アクション　方向　インデックス
+                const int act = 0;
+                const int dir = 1;
+                //データの数（アクション,方向）２
+                const int elm_cnt = 2;
+                //コマンド文字列取得
+                List<Command> cmds = new List<Command>();
+                //文字列からコマンド群へ変換
+                for (int i = 0; i < mason; i++)
                 {
-                    Array.Resize(ref cmd_data, elm_cnt);
-                    cmd_data[act] = 0;
-                    cmd_data[dir] = 0;
+                    //文字列コマンドをint配列に変換
+                    var cmd_data = ArrayUtility.PuckStrToIntArrayEx(inputFields[i].text);
+                    //配列サイズが異なる場合のデフォルト修正(エラー回避)
+                    if (cmd_data.Length != elm_cnt)
+                    {
+                        Array.Resize(ref cmd_data, elm_cnt);
+                        cmd_data[act] = 0;
+                        cmd_data[dir] = 0;
+                    }
+
+                    //cmd_data デバッグ用
+                    cmds.Add(new Command { actType = cmd_data[act], dir = cmd_data[dir] });
                 }
-                //cmd_data デバッグ用
-                //DebugEx.Log($"mason[{i}] cmd:{cmd_data[0]} act:{cmd_data[1]}");
 
-                //Command _cmd = new Command { act = cmd_data[act], dir = cmd_data[dir] };
-                cmds.Add(new Command { actType = cmd_data[act], dir = cmd_data[dir] });
+                //int isFirst = matchesInfo.matches.first ? 1 : 2;
+                //POSTができたかどうか?
+                if (ClientManager.Instance.PostCommandJson(m_nowTurn + 1, cmds.ToArray()))
+                {
+                    ShowLogMessage("POST完了");
+                }
+                else ShowLogMessage("POSTエラー", Utility.Level.Error);
             }
-
-            //POSTができたかどうか?
-            if (ClientManager.Instance.PostCommandJson(m_nowTurn + 1, cmds.ToArray()))
+            catch (Exception e)
             {
-                ShowLogMessage("POST完了");
+                DebugEx.Log(e.Message);
+                //Console.WriteLine(e);
+                //throw;
             }
-            else ShowLogMessage("POSTエラー", Utility.Level.Error);
         }
 
         /// <summary>
@@ -163,16 +159,23 @@ namespace KCP2023
         }
         
         private float turnPastTime = 0.0f;               //ターン経過時間
-        private float nextTurnTime = 3.0f;               //次のターンまでの時間
-        private const float defaultNextTurnTime = 15.0f; //デフォルトの次のターン時間
+        private float turnSeconds = 3.0f;               //次のターンまでの時間
+        private const float defaultNextTurnTime = 10.0f; //デフォルトの次のターン時間
+
+
+        protected override void Init()
+        {
+            //1ターン時間設定
+            turnSeconds = (float)GameManager.Instance.gameConfig.nowMatches.turnSeconds;
+        }
 
         private void Start()
         {
-            //SetFieldCenterCameraPosition();
+            //タイマー初期化
+            nextTurnTimer.text = $"ターン猶予時間 {turnSeconds.ToString("f2")}秒";
 
-            nextTurnTime = Utility.isMainHost()
-                ? GameSceneManager.Instance.matchesInfo.matches.turnSeconds
-                : defaultNextTurnTime;
+            //カメラ位置調整
+            SetCameraPosition();
             StartCoroutine(AsyncUpdate());
         }
 
@@ -184,16 +187,24 @@ namespace KCP2023
             //サーバー接続可能までスルー
             while (!ClientManager.Instance.ablePost) yield return null;
             //接続後に初期マップの配置
-            //MapCreator.Instance.SetGameFieldInit();
             //getリクエスト成功まで送信
             while (!ClientManager.Instance.isStart) yield return null;
 
-            //クライアント側の全ターンが終わるまで
+            //クライアントマネージャ側で全ターンが終わるまで
             while (!ClientManager.Instance.isEnd)
             {
+                //nextTurnTime = GameSceneManager.Instance.matchesInfo.matches.turnSeconds;
+                
                 //入力化の時間のカウントダウン(次のターンまでの残り時間)
                 turnPastTime += Time.deltaTime;
-                nextTurnTimer.text = $"ターン猶予時間 {(nextTurnTime - turnPastTime).ToString("f2")}秒";
+                //0秒への正規化
+                if (turnPastTime > turnSeconds) turnPastTime = turnSeconds;
+                float limTime = turnSeconds - turnPastTime;
+                nextTurnTimer.text = $"ターン猶予時間 {limTime.ToString("f2")}秒";
+
+                //強制コマンドポスト
+                const float powerPostTime = 2.0f;
+                if (limTime < powerPostTime) PostCommandData();
                 
                 //ターン更新時にフィールドを更新
                 if (nowMatches.turn != m_nowTurn)
@@ -209,29 +220,5 @@ namespace KCP2023
                 yield return null;
             }
         }
-
-        //private void Update()
-        //{
-        //    //サーバー接続可能までスルー
-        //    if (!ClientManager.Instance.ablePost) return;
-        //    MapCreator.Instance.SetGameField(GameManager.Instance.gameConfig.client.hostType);
-//
-        //    if (!ClientManager.Instance.isStart) return;
-//
-        //    //入力化の時間のカウントダウン(次のターンまでの残り時間)
-        //    turnPastTime += Time.deltaTime;
-        //    nextTurnTimer.text = $"ターン猶予時間{(nextTurnTime - turnPastTime).ToString("f2")}秒";
-//
-        //    //ターン更新時にフィールドを更新
-        //    if (nowMatches.turn != m_nowTurn)
-        //    {
-        //        turnPastTime = 0.0f;
-        //        m_nowTurn = nowMatches.turn;
-        //        //DebugEx.Log($"turn change! {m_nowTurn}");
-        //        turnCnt.text = $"現在 {m_nowTurn}ターン目";
-        //        ShowLogMessage($"ターン更新！ {m_nowTurn}ターン", Utility.Level.PopUp);
-        //        MapCreator.Instance.SetGameField();
-        //    }
-        //}
     }
 }

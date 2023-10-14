@@ -13,72 +13,6 @@ namespace KCP2023
 {
     public class GameManager : SingletonBase<GameManager>
     {
-        public string csvDirectoryPath = "C:/Users/futur/Desktop/KCP2023/fielddata";
-        public string csvFileName = "A11";
-
-        public string csvFilePath
-        {
-            get { return $"{csvDirectoryPath}/{csvFileName}.csv"; }
-        }
-
-        public char[,] fieldData
-        {
-            get { return CSV.GetCharTable(csvFilePath); }
-        }
-
-        public GameField filedData_KAI
-        {
-            get { return new GameField(); }
-        }
-
-        //フィールド名
-        public string fieldName
-        {
-            get { return csvFileName; }
-        }
-
-        //フィールドタイプ(A,B,C)
-        public char fileType
-        {
-            get { return csvFileName[0]; }
-        }
-
-        //フィールドサイズ(11,13,15,17,21,25)
-        public int fieldSize
-        {
-            get { return int.Parse(csvFileName.Substring(1, 2)); }
-        }
-
-        public int fieldSizeIndex
-        {
-            get
-            {
-                int[] fsize = { 11, 13, 15, 17, 21, 25 };
-                return Array.IndexOf(fsize, fieldSize);
-            }
-        }
-        
-        private List<Mason> playAbleCraftsmen = new List<Mason>();
-
-        public List<Mason> GetPlayAbleCraftsmen()
-        {
-            return playAbleCraftsmen;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="craftsmen"></param>
-        public void SetPlayAbleCraftsmen(Mason[] craftsmen)
-        {
-            playAbleCraftsmen = craftsmen.ToList();
-        }
-
-        public void SetPlayAbleCraftsmen(List<Mason> craftsmen)
-        {
-            playAbleCraftsmen = craftsmen;
-        }
-
         //設定jsonファイルのパス
         public string configJsonPath = "C:/config/config.json";
 
@@ -86,6 +20,7 @@ namespace KCP2023
         //public string LocalMatchesJsonPath = "C:/Users/futur/Desktop/KCP2023/server/json/getMatchesInfo.json";
         
         public Config gameConfig = new Config();
+
         /// <summary>
         /// 設定jsonの読み取り
         /// </summary>
@@ -97,18 +32,20 @@ namespace KCP2023
                 StreamReader configJson = new StreamReader(configJsonPath);
                 string configStr = configJson.ReadToEnd();
                 gameConfig = JsonUtility.FromJson<Config>(configStr);
-                DebugEx.Log(configStr);
-                //sDebugEx.Log(gameConfig.client.name);
+                //DebugEx.Log(gameConfig.client.name);
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e);
+                GameSceneManager.Instance.ShowLogMessage("設定ファイル読み取り不能", Utility.Level.Error);
                 return false;
                 throw;
             }
             return true;
         }
 
+        /// <summary>
+        /// 初期化
+        /// </summary>
         protected override void Init()
         {
             Base.Instance.AddToBase(this);

@@ -14,7 +14,7 @@ namespace KCP2023
 
         private void Start()
         {
-            SpawnCraftsman(GameManager.Instance.GetPlayAbleCraftsmen());
+            //SpawnCraftsman(GameManager.Instance.GetPlayAbleCraftsmen());
         }
 
         private void SpawnCraftsman(List<Mason> craftsmen)
